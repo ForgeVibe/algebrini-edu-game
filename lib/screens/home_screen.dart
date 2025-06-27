@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/game_stats_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -103,93 +104,81 @@ class _HomeScreenState extends State<HomeScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    // Use a playful background color
+    return Container(
+      color: Colors.purple.shade50,
       child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Welcome Section
-            _buildWelcomeSection(loc),
-            
-            const SizedBox(height: 24),
-            
-            // Quick Stats
-            _buildQuickStatsSection(),
-            
-            const SizedBox(height: 24),
-            
-            // Quick Access to Games
-            _buildQuickAccessSection(loc),
-            
-            const SizedBox(height: 24),
-            
-            // Recent Activity
-            if (_recentActivity.isNotEmpty) ...[
-              _buildRecentActivitySection(),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Playful Welcome Section
+              _buildPlayfulWelcomeSection(loc),
               const SizedBox(height: 24),
+              // Playful Quick Stats
+              _buildPlayfulQuickStatsSection(),
+              const SizedBox(height: 24),
+              // Playful Quick Access to Games
+              _buildPlayfulQuickAccessSection(loc),
+              const SizedBox(height: 24),
+              // Recent Activity
+              if (_recentActivity.isNotEmpty) ...[
+                _buildRecentActivitySection(),
+                const SizedBox(height: 24),
+              ],
+              // Daily Challenge
+              _buildPlayfulDailyChallengeSection(),
             ],
-            
-            // Daily Challenge
-            _buildDailyChallengeSection(),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildWelcomeSection(AppLocalizations loc) {
+  // Playful Welcome Section with large mascot icon and friendly font
+  Widget _buildPlayfulWelcomeSection(AppLocalizations loc) {
     return Card(
-      elevation: 4,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20.0),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.deepPurple.shade300, Colors.deepPurple.shade600],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      color: Colors.deepPurple.shade400,
+      child: Padding(
+        padding: const EdgeInsets.all(28.0),
+        child: Row(
           children: [
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.white,
-                  child: Icon(
-                    Icons.person,
-                    size: 30,
-                    color: Colors.deepPurple.shade600,
+            // Mascot or playful icon
+            CircleAvatar(
+              radius: 40,
+              backgroundColor: Colors.white,
+              child: Icon(
+                Icons.emoji_emotions,
+                size: 48,
+                color: Colors.deepPurple.shade400,
+              ),
+            ),
+            const SizedBox(width: 24),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Welcome back, $_username!',
+                    style: GoogleFonts.baloo2(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome back, $_username!',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        'Ready to learn some algebra?',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.white.withOpacity(0.9),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 8),
+                  Text(
+                    'Ready for some magical math adventures?',
+                    style: GoogleFonts.baloo2(
+                      fontSize: 18,
+                      color: Colors.white.withOpacity(0.95),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
@@ -197,61 +186,64 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickStatsSection() {
+  // Playful Quick Stats Section
+  Widget _buildPlayfulQuickStatsSection() {
     return Row(
       children: [
         Expanded(
-          child: _buildStatCard(
+          child: _buildPlayfulStatCard(
             'Games',
             '${_stats['totalGamesPlayed']}',
             Icons.videogame_asset,
-            Colors.green,
+            Colors.green.shade400,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildStatCard(
+          child: _buildPlayfulStatCard(
             'Accuracy',
             '${_accuracy.toStringAsFixed(1)}%',
             Icons.track_changes,
-            Colors.blue,
+            Colors.blue.shade400,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildStatCard(
+          child: _buildPlayfulStatCard(
             'Streak',
             '${_stats['currentStreak']}',
             Icons.local_fire_department,
-            Colors.orange,
+            Colors.orange.shade400,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildPlayfulStatCard(String label, String value, IconData icon, Color color) {
     return Card(
-      elevation: 3,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      color: color.withOpacity(0.15),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 8),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 32),
-            const SizedBox(height: 8),
+            Icon(icon, color: color, size: 36),
+            const SizedBox(height: 10),
             Text(
               value,
-              style: TextStyle(
-                fontSize: 20,
+              style: GoogleFonts.baloo2(
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
                 color: color,
               ),
             ),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
+              style: GoogleFonts.baloo2(
+                fontSize: 16,
+                color: color,
               ),
             ),
           ],
@@ -260,75 +252,106 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickAccessSection(AppLocalizations loc) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Quick Play',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
+  // Playful Quick Access Section
+  Widget _buildPlayfulQuickAccessSection(AppLocalizations loc) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      color: Colors.purple.shade100,
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            Expanded(
-              child: _buildGameCard(
-                'Sequences',
-                'Find the pattern in number sequences',
-                Icons.timeline,
-                Colors.deepPurple,
-                () => _navigateToGame('sequences'),
-              ),
+            _buildPlayfulQuickAccessButton(
+              icon: Icons.play_circle_fill,
+              label: loc.play,
+              color: Colors.deepPurple.shade400,
+              onTap: () => Navigator.pushNamed(context, '/play'),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildGameCard(
-                'Equations',
-                'Solve simple algebraic equations',
-                Icons.functions,
-                Colors.green,
-                () => _navigateToGame('equations'),
-              ),
+            _buildPlayfulQuickAccessButton(
+              icon: Icons.emoji_events,
+              label: 'Progress',
+              color: Colors.amber.shade700,
+              onTap: () => Navigator.pushNamed(context, '/progress'),
+            ),
+            _buildPlayfulQuickAccessButton(
+              icon: Icons.settings,
+              label: loc.settings,
+              color: Colors.blue.shade400,
+              onTap: () => Navigator.pushNamed(context, '/settings'),
             ),
           ],
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildGameCard(String title, String description, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildPlayfulQuickAccessButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.2),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(16),
+            child: Icon(icon, color: color, size: 36),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: GoogleFonts.baloo2(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Playful Daily Challenge Section
+  Widget _buildPlayfulDailyChallengeSection() {
     return Card(
-      elevation: 3,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              Icon(icon, color: color, size: 40),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      color: Colors.pink.shade100,
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Row(
+          children: [
+            Icon(Icons.flash_on, color: Colors.pink.shade400, size: 36),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                'Try today's Daily Challenge for a bonus reward!',
+                style: GoogleFonts.baloo2(
+                  fontSize: 18,
+                  color: Colors.pink.shade700,
                   fontWeight: FontWeight.bold,
                 ),
-                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
-                textAlign: TextAlign.center,
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.pink.shade400,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                textStyle: GoogleFonts.baloo2(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            ],
-          ),
+              onPressed: () => Navigator.pushNamed(context, '/play'),
+              child: const Text('Play'),
+            ),
+          ],
         ),
       ),
     );
@@ -373,75 +396,6 @@ class _HomeScreenState extends State<HomeScreen> {
             color: Colors.grey[600],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDailyChallengeSection() {
-    return Card(
-      elevation: 3,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(20.0),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.orange.shade300, Colors.orange.shade600],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.emoji_events,
-                  color: Colors.white,
-                  size: 32,
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Daily Challenge',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Complete 5 questions today to earn bonus points!',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _navigateToGame('daily'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.orange.shade600,
-              ),
-              child: const Text('Start Challenge'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _navigateToGame(String gameType) {
-    // Navigate to the play screen - the games will be accessible from there
-    // For now, we'll just show a snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Navigating to $gameType game...'),
-        duration: const Duration(seconds: 1),
       ),
     );
   }
