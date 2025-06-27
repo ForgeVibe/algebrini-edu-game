@@ -1,168 +1,239 @@
 version: '3'
 
-# Global variables
 vars:
   IMAGE_NAME: algebrini-flutter
   FLUTTER_VERSION: '3.19.6'
   FLUTTER_TAR: 'flutter_linux_{{.FLUTTER_VERSION}}-stable.tar.xz'
   FLUTTER_URL: 'https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/{{.FLUTTER_TAR}}'
-  DOCKER_CONTEXT: './infra/docker'
+  DOCKER_CONTEXT: '.'
   DOWNLOADS_DIR: './infra/downloads'
+  CONTAINER_NAME: algebrini-dev
 
 tasks:
-  # Development tasks
   dev:
-    desc: Start development environment with hot reload
+    desc: Start development environment with hot reload (background)
     deps: [download-flutter, build-dev]
     cmds:
-      - echo "🚀 Starting Algebrini development server..."
-      - docker run --rm -p 5000:5000 -p 8080:8080 {{.IMAGE_NAME}}:development
-    sources:
-      - lib/**
-      - pubspec.yaml
-    generates:
-      - .dart_tool/
+      - |
+        echo "Starting Algebrini development server in background..."
+        docker run -d -p 5000:5000 -p 8888:8080 --name {{.CONTAINER_NAME}} {{.IMAGE_NAME}}:development
+        echo "Development server started in background"
+        echo "App available at: http://localhost:5000"
+        echo "Logs available with: task logs"
+
+  dev-fg:
+    desc: Start development environment with hot reload (foreground)
+    deps: [download-flutter, build-dev]
+    cmds:
+      - |
+        echo "Starting Algebrini development server..."
+        docker run --rm -p 5000:5000 -p 8888:8080 {{.IMAGE_NAME}}:development
 
   build-dev:
     desc: Build development Docker image
     deps: [download-flutter]
     cmds:
-      - echo "🏗️ Building development image..."
-      - docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target development -t {{.IMAGE_NAME}}:development {{.DOCKER_CONTEXT}}
+      - |
+        echo "Building development image..."
+        docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target development -t {{.IMAGE_NAME}}:development -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
-  # Testing tasks
   test:
     desc: Run all tests with coverage
     deps: [download-flutter, build-test]
     cmds:
-      - echo "🧪 Running tests..."
-      - docker run --rm {{.IMAGE_NAME}}:testing
-    sources:
-      - lib/**
-      - test/**
-      - pubspec.yaml
+      - |
+        echo "Running tests..."
+        docker run --rm {{.IMAGE_NAME}}:testing
 
   build-test:
     desc: Build testing Docker image
     deps: [download-flutter]
     cmds:
-      - echo "🏗️ Building test image..."
-      - docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target testing -t {{.IMAGE_NAME}}:testing {{.DOCKER_CONTEXT}}
+      - |
+        echo "Building test image..."
+        docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target testing -t {{.IMAGE_NAME}}:testing -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
-  # Build tasks
   build-web:
     desc: Build web app for production
     deps: [download-flutter, build-web-image]
     cmds:
-      - echo "🌐 Web app built successfully"
-    sources:
-      - lib/**
-      - assets/**
-      - pubspec.yaml
+      - echo "Web app built successfully"
 
   build-web-image:
     desc: Build web production Docker image
     deps: [download-flutter]
     cmds:
-      - echo "🏗️ Building web production image..."
-      - docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target web-build -t {{.IMAGE_NAME}}:web-build {{.DOCKER_CONTEXT}}
+      - |
+        echo "Building web production image..."
+        docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target web-build -t {{.IMAGE_NAME}}:web-build -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
   build-android:
     desc: Build Android APK
     deps: [download-flutter, build-android-image]
     cmds:
-      - echo "📱 Android APK built successfully"
-    sources:
-      - lib/**
-      - assets/**
-      - pubspec.yaml
+      - echo "Android APK built successfully"
 
   build-android-image:
     desc: Build Android Docker image
     deps: [download-flutter]
     cmds:
-      - echo "🏗️ Building Android image..."
-      - docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target android-build -t {{.IMAGE_NAME}}:android-build {{.DOCKER_CONTEXT}}
+      - |
+        echo "Building Android image..."
+        docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target android-build -t {{.IMAGE_NAME}}:android-build -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
-  # Production tasks
   serve-web:
     desc: Serve production web app with nginx
     deps: [download-flutter, build-prod]
     cmds:
-      - echo "🌐 Starting production web server..."
-      - docker run --rm -p 80:80 {{.IMAGE_NAME}}:production
+      - |
+        echo "Starting production web server..."
+        docker run --rm -p 80:80 {{.IMAGE_NAME}}:production
 
   build-prod:
     desc: Build production Docker image
     deps: [download-flutter]
     cmds:
-      - echo "🏗️ Building production image..."
-      - docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target production -t {{.IMAGE_NAME}}:production {{.DOCKER_CONTEXT}}
+      - |
+        echo "Building production image..."
+        docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target production -t {{.IMAGE_NAME}}:production -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
-  # Utility tasks
   download-flutter:
     desc: Download Flutter SDK if not present
     cmds:
       - |
         if [ ! -f "{{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}" ]; then
-          echo "⬇️ Downloading Flutter SDK..."
+          echo "Downloading Flutter SDK..."
           mkdir -p {{.DOWNLOADS_DIR}}
           wget -O "{{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}" "{{.FLUTTER_URL}}"
-          echo "✅ Flutter SDK downloaded"
+          echo "Flutter SDK downloaded"
         else
-          echo "✅ Flutter SDK already present"
+          echo "Flutter SDK already present"
         fi
-    sources:
-      - pubspec.yaml
+
+  stop:
+    desc: Stop Algebrini development containers
+    cmds:
+      - |
+        echo "Stopping Algebrini containers..."
+        docker stop {{.CONTAINER_NAME}} 2>/dev/null || echo "No running Algebrini container found"
+        docker rm {{.CONTAINER_NAME}} 2>/dev/null || echo "No Algebrini container to remove"
+
+  stop-all:
+    desc: Stop all Algebrini containers
+    cmds:
+      - |
+        echo "Stopping all Algebrini containers..."
+        docker ps -q --filter "ancestor={{.IMAGE_NAME}}:development" | xargs -r docker stop
+        docker ps -aq --filter "ancestor={{.IMAGE_NAME}}:development" | xargs -r docker rm
+
+  logs:
+    desc: View development server logs
+    cmds:
+      - docker logs -f {{.CONTAINER_NAME}}
+
+  restart:
+    desc: Restart development server
+    cmds:
+      - task: stop
+      - task: dev
+
+  format:
+    desc: Format Dart code
+    deps: [build-dev]
+    cmds:
+      - |
+        echo "Formatting code..."
+        docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development flutter format .
+
+  analyze:
+    desc: Analyze Dart code
+    deps: [build-dev]
+    cmds:
+      - |
+        echo "Analyzing code..."
+        docker run --rm {{.IMAGE_NAME}}:development flutter analyze
 
   clean:
     desc: Clean Docker images and containers
     cmds:
-      - echo "🧹 Cleaning up Docker resources..."
-      - docker system prune -f
-      - docker rmi {{.IMAGE_NAME}}:development {{.IMAGE_NAME}}:testing {{.IMAGE_NAME}}:web-build {{.IMAGE_NAME}}:android-build {{.IMAGE_NAME}}:production 2>/dev/null || true
-      - echo "✅ Cleanup completed"
+      - |
+        echo "Cleaning up Docker resources..."
+        task: stop-all
+        docker system prune -f
+        docker rmi {{.IMAGE_NAME}}:development {{.IMAGE_NAME}}:testing {{.IMAGE_NAME}}:web-build {{.IMAGE_NAME}}:android-build {{.IMAGE_NAME}}:production 2>/dev/null || true
+        echo "Cleanup completed"
 
   clean-all:
     desc: Clean everything including Flutter SDK
     cmds:
-      - task: clean
-      - rm -f {{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}
-      - echo "✅ Complete cleanup finished"
+      - |
+        task: clean
+        rm -f {{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}
+        echo "Complete cleanup finished"
 
-  # CI/CD tasks
+  status:
+    desc: Show development environment status
+    cmds:
+      - |
+        echo "Algebrini Development Environment Status"
+        echo "========================================"
+        echo "Docker containers:"
+        docker ps --filter "ancestor={{.IMAGE_NAME}}:development" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+        echo ""
+        echo "Available ports:"
+        echo "  Development: http://localhost:5000"
+        echo "  Production:  http://localhost:8080"
+        echo ""
+        echo "Useful commands:"
+        echo "  task dev       - Start development server in background"
+        echo "  task logs      - View development logs"
+        echo "  task stop      - Stop development server"
+        echo "  task restart   - Restart development server"
+
   ci:
     desc: Run complete CI/CD pipeline
     deps: [test, build-web, build-android]
     cmds:
-      - echo "✅ CI/CD pipeline completed successfully"
-
-  # Documentation tasks
-  docs:
-    desc: Show available tasks
-    cmds:
-      - task --list
+      - echo "CI/CD pipeline completed successfully"
 
   help:
     desc: Show detailed help
     cmds:
-      - echo "Algebrini Flutter Development Tasks"
-      - echo ""
-      - echo "Development:"
-      - echo "  task dev          - Start development server (default)"
-      - echo "  task test         - Run all tests"
-      - echo ""
-      - echo "Building:"
-      - echo "  task build-web    - Build web app for production"
-      - echo "  task build-android - Build Android APK"
-      - echo "  task serve-web    - Serve production web app"
-      - echo ""
-      - echo "CI/CD:"
-      - echo "  task ci           - Run complete pipeline"
-      - echo ""
-      - echo "Utilities:"
-      - echo "  task clean        - Clean Docker resources"
-      - echo "  task clean-all    - Clean everything"
-      - echo "  task docs         - Show all tasks"
-      - echo ""
-      - echo "For more details, see: infra/docs/README-Docker.md" 
+      - |
+        echo "Algebrini Educational Game - Task Commands"
+        echo "=========================================="
+        echo ""
+        echo "Development Commands:"
+        echo "  task dev       - Start development server in background"
+        echo "  task dev-fg    - Start development server (foreground)"
+        echo "  task logs      - View development server logs"
+        echo "  task stop      - Stop development server"
+        echo "  task restart   - Restart development server"
+        echo "  task status    - Show environment status"
+        echo ""
+        echo "Build Commands:"
+        echo "  task build-dev   - Build development Docker image"
+        echo "  task build-prod  - Build production Docker image"
+        echo "  task build-web   - Build web app for production"
+        echo ""
+        echo "Testing Commands:"
+        echo "  task test        - Run Flutter tests"
+        echo "  task analyze     - Analyze Dart code"
+        echo "  task format      - Format Dart code"
+        echo ""
+        echo "Production Commands:"
+        echo "  task serve-web   - Serve production web app"
+        echo ""
+        echo "Maintenance Commands:"
+        echo "  task clean       - Clean Docker resources"
+        echo "  task stop-all    - Stop all Algebrini containers"
+        echo ""
+        echo "CI/CD:"
+        echo "  task ci          - Run complete pipeline"
+        echo ""
+        echo "For more information, run: task --list"
+
+  default:
+    desc: Show help by default
+    cmds:
+      - task: help 

@@ -40,6 +40,8 @@ class AlgebriniApp extends StatelessWidget {
         supportedLocales: const [
           Locale('en'),
           Locale('fr'),
+          Locale('es'),
+          Locale('de'),
         ],
         home: const MainNavigation(),
       ),

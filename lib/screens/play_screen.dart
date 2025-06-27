@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../services/game_stats_service.dart';
 
 class PlayScreen extends StatelessWidget {
   const PlayScreen({super.key});
@@ -102,18 +103,22 @@ class _RecursiveSequencesGameScreenState extends State<RecursiveSequencesGameScr
     });
   }
 
-  void _checkAnswer() {
-    if (_controller.text.trim() == _answer.toString()) {
-      setState(() {
-        _feedback = 'Correct!';
+  Future<void> _checkAnswer() async {
+    final isCorrect = _controller.text.trim() == _answer.toString();
+    
+    // Record the answer using the service
+    await GameStatsService.recordAnswer(isCorrect, 'Recursive Sequences');
+    
+    setState(() {
+      _feedback = isCorrect ? 'Correct!' : 'Try again!';
+      if (isCorrect) {
         _currentIndex++;
-      });
+      }
+    });
+    
+    if (isCorrect) {
       Future.delayed(const Duration(seconds: 1), () {
         _loadSequence();
-      });
-    } else {
-      setState(() {
-        _feedback = 'Try again!';
       });
     }
   }
@@ -195,25 +200,27 @@ class _RecursiveSequencesGameScreenState extends State<RecursiveSequencesGameScr
             ),
           ),
           if (_showTutorial)
-            Container(
-              color: Colors.black54,
-              child: Center(
-                child: Card(
-                  margin: const EdgeInsets.all(32),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('How to Play', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        const Text('Look at the sequence and find the pattern. Enter the next number in the sequence.'),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _dismissTutorial,
-                          child: const Text('Got it!'),
-                        ),
-                      ],
+            Positioned.fill(
+              child: Container(
+                color: Colors.black54,
+                child: Center(
+                  child: Card(
+                    margin: const EdgeInsets.all(32),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('How to Play', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 16),
+                          const Text('Look at the sequence and find the pattern. Enter the next number in the sequence.'),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _dismissTutorial,
+                            child: const Text('Got it!'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -246,17 +253,21 @@ class _SimpleEquationsGameScreenState extends State<SimpleEquationsGameScreen> {
   bool _showTutorial = true;
   final TextEditingController _controller = TextEditingController();
 
-  void _checkAnswer() {
-    if (_controller.text.trim() == _equations[_currentIndex]['answer'].toString()) {
-      setState(() {
-        _feedback = 'Correct!';
+  Future<void> _checkAnswer() async {
+    final isCorrect = _controller.text.trim() == _equations[_currentIndex]['answer'].toString();
+    
+    // Record the answer using the service
+    await GameStatsService.recordAnswer(isCorrect, 'Simple Equations');
+    
+    setState(() {
+      _feedback = isCorrect ? 'Correct!' : 'Try again!';
+      if (isCorrect) {
         _currentIndex = (_currentIndex + 1) % _equations.length;
-      });
+      }
+    });
+    
+    if (isCorrect) {
       _controller.clear();
-    } else {
-      setState(() {
-        _feedback = 'Try again!';
-      });
     }
   }
 
@@ -321,25 +332,27 @@ class _SimpleEquationsGameScreenState extends State<SimpleEquationsGameScreen> {
             ),
           ),
           if (_showTutorial)
-            Container(
-              color: Colors.black54,
-              child: Center(
-                child: Card(
-                  margin: const EdgeInsets.all(32),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text('How to Play', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                        const SizedBox(height: 16),
-                        const Text('Solve the equation for x and enter your answer.'),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: _dismissTutorial,
-                          child: const Text('Got it!'),
-                        ),
-                      ],
+            Positioned.fill(
+              child: Container(
+                color: Colors.black54,
+                child: Center(
+                  child: Card(
+                    margin: const EdgeInsets.all(32),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text('How to Play', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 16),
+                          const Text('Solve the equation for x and enter your answer.'),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _dismissTutorial,
+                            child: const Text('Got it!'),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),

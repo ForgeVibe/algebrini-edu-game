@@ -1,9 +1,10 @@
 {
   "appTitle": "Algebrini",
   "homeWelcome": "Bienvenue sur Algebrini !",
-  "languageSelect": "Choisir la langue",
+  "languageSelect": "Sélectionner la langue",
   "profile": "Profil",
   "play": "Jouer",
+  "progress": "Progrès",
   "progress": "Progression",
   "settings": "Paramètres"
 } 

@@ -26,7 +26,7 @@ ENV FLUTTER_HOME=/opt/flutter
 ENV PATH="${FLUTTER_HOME}/bin:${FLUTTER_HOME}/bin/cache/dart-sdk/bin:${PATH}"
 
 # Extract Flutter SDK (from downloads directory)
-COPY ../downloads/${FLUTTER_TAR} /tmp/${FLUTTER_TAR}
+COPY infra/downloads/${FLUTTER_TAR} /tmp/${FLUTTER_TAR}
 RUN tar -xJf /tmp/${FLUTTER_TAR} -C /opt && \
     rm /tmp/${FLUTTER_TAR} && \
     git config --global --add safe.directory /opt/flutter
@@ -45,17 +45,17 @@ FROM base as development
 WORKDIR /home/flutteruser/app
 
 # Copy only pubspec files first for dependency caching (from parent directory)
-COPY --chown=flutteruser:flutteruser ../../pubspec.* ./
+COPY --chown=flutteruser:flutteruser pubspec.* ./
 RUN flutter pub get
 
 # Copy the rest of the code (from parent directory)
-COPY --chown=flutteruser:flutteruser ../../ ./
+COPY --chown=flutteruser:flutteruser . ./
 
 # Expose ports for web and debugging
 EXPOSE 5000 8080
 
 # Default command for development
-CMD ["flutter", "run", "-d", "chrome", "--web-port=5000", "--web-hostname=0.0.0.0"]
+CMD ["flutter", "run", "-d", "web-server", "--web-port=5000", "--web-hostname=0.0.0.0", "--release"]
 
 # Testing stage
 FROM development as testing
@@ -72,11 +72,11 @@ FROM base as web-build
 WORKDIR /home/flutteruser/app
 
 # Copy only pubspec files first (from parent directory)
-COPY --chown=flutteruser:flutteruser ../../pubspec.* ./
+COPY --chown=flutteruser:flutteruser pubspec.* ./
 RUN flutter pub get
 
 # Copy the rest of the code (from parent directory)
-COPY --chown=flutteruser:flutteruser ../../ ./
+COPY --chown=flutteruser:flutteruser . ./
 
 # Build web app
 RUN flutter build web --release
@@ -88,7 +88,7 @@ FROM nginx:alpine as production
 COPY --from=web-build /home/flutteruser/app/build/web /usr/share/nginx/html
 
 # Copy custom nginx config for SPA routing
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+COPY infra/docker/nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 
@@ -100,11 +100,11 @@ FROM base as android-build
 WORKDIR /home/flutteruser/app
 
 # Copy only pubspec files first (from parent directory)
-COPY --chown=flutteruser:flutteruser ../../pubspec.* ./
+COPY --chown=flutteruser:flutteruser pubspec.* ./
 RUN flutter pub get
 
 # Copy the rest of the code (from parent directory)
-COPY --chown=flutteruser:flutteruser ../../ ./
+COPY --chown=flutteruser:flutteruser . ./
 
 # Build Android APK
 RUN flutter build apk --release
@@ -115,11 +115,11 @@ FROM base as ios-build
 WORKDIR /home/flutteruser/app
 
 # Copy only pubspec files first (from parent directory)
-COPY --chown=flutteruser:flutteruser ../../pubspec.* ./
+COPY --chown=flutteruser:flutteruser pubspec.* ./
 RUN flutter pub get
 
 # Copy the rest of the code (from parent directory)
-COPY --chown=flutteruser:flutteruser ../../ ./
+COPY --chown=flutteruser:flutteruser . ./
 
 # Note: iOS builds require macOS and Xcode
 # This stage is for structure only

@@ -1,5 +1,10 @@
 # Algebrini - Educational Algebra Game
 
+> **BREAKING CHANGE (vNext):**
+> - The Taskfile and Docker workflow have changed. See the updated sections below for new commands and usage.
+> - Use `task help` or see the "Taskfile Commands" section for all available automation tasks.
+> - Container management is now safer and only targets Algebrini containers.
+
 An interactive Flutter game designed to teach algebra concepts to children aged 9-13 through engaging mini-games and progressive learning.
 
 ## 🎯 MVP Features
@@ -141,34 +146,75 @@ task build-web
 task build-android
 ```
 
-## 🐳 Docker Development
+## 🛠️ Taskfile Commands
 
-### **Quick Docker Setup**
+The project uses [Task](https://taskfile.dev/) for all development, build, and CI automation. Here are the available commands:
+
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| dev                 | Start development server (background)            |
+| dev-fg              | Start development server (foreground)            |
+| build-dev           | Build development Docker image                   |
+| build-prod          | Build production Docker image                    |
+| build-web           | Build web app for production                     |
+| build-web-image     | Build web production Docker image                |
+| build-android       | Build Android APK                                |
+| build-android-image | Build Android Docker image                       |
+| test                | Run all tests with coverage                      |
+| build-test          | Build testing Docker image                       |
+| format              | Format Dart code                                 |
+| analyze             | Analyze Dart code                                |
+| stop                | Stop Algebrini development containers            |
+| stop-all            | Stop all Algebrini containers                    |
+| logs                | View development server logs                     |
+| restart             | Restart development server                       |
+| clean               | Clean Docker images and containers               |
+| clean-all           | Clean everything including Flutter SDK           |
+| status              | Show development environment status              |
+| ci                  | Run complete CI/CD pipeline                     |
+| help                | Show detailed help                               |
+| default             | Show help by default (when running `task`)       |
+
+Run `task <taskname>` to execute a task. For example:
 ```bash
-# Development mode
+task dev
+```
+
+## 🐳 Docker Development (Updated)
+
+### **Quick Docker Setup (Recommended)**
+```bash
+# Start development server (background)
 task dev
 
-# Run tests
-task test
+# View logs
+task logs
+
+# Stop development server
+task stop
 
 # Build for production
 task build-web
 task serve-web
 ```
 
-### **Manual Docker Commands**
+### **Safer Container Management**
+- `task stop` and `task stop-all` only affect Algebrini containers, not your entire Docker environment.
+- Use `task clean` to remove only Algebrini images and containers.
+
+### **Manual Docker Commands (Advanced)**
 ```bash
 # Build development image
-docker build --target development -t algebrini:dev infra/docker/
+docker build --target development -t algebrini-flutter:development infra/docker/
 
 # Run development server
-docker run --rm -p 5000:5000 algebrini:dev
+docker run --rm -p 5000:5000 algebrini-flutter:development
 
 # Build production image
-docker build --target production -t algebrini:prod infra/docker/
+docker build --target production -t algebrini-flutter:production infra/docker/
 
 # Run production server
-docker run --rm -p 80:80 algebrini:prod
+docker run --rm -p 80:80 algebrini-flutter:production
 ```
 
 ## 📊 MVP Progress
