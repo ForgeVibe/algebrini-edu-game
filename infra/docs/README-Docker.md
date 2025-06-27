@@ -280,6 +280,12 @@ If you were using the old `test_automation.sh` script:
 
 The old script is still available at `infra/scripts/test_automation.sh` for reference.
 
+## Development Workflow
+
+For collaborative development and major features, follow the [branching workflow](../../docs/branching-workflow.md) described in this documentation. This ensures stable, reviewable, and testable changes before merging into the main development branch.
+
+> **Note:** All infrastructure commands (build, test, run) are defined in `infra/Taskfile.yml`. Please consult the Taskfile for available commands. The codebase is MVP-complete; all new work should build on the existing code.
+
 ---
 
 **Happy coding with Algebrini! 🧙‍♂️✨** 
