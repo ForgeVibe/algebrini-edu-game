@@ -143,6 +143,12 @@ class LevelProgressionService {
     return completions[level.toString()];
   }
 
+  // Check if a level is completed
+  static Future<bool> isLevelCompleted(String gameId, int level) async {
+    final completion = await getLevelCompletion(gameId, level);
+    return completion != null && completion['completed'] == true;
+  }
+
   // Get all achievements
   static Future<List<String>> getAchievements() async {
     final prefs = await SharedPreferences.getInstance();

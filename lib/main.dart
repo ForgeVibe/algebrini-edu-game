@@ -9,6 +9,7 @@ import 'screens/progress_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/challenges_screen.dart';
+import 'screens/world_map_screen.dart';
 import 'services/font_size_provider.dart';
 import 'services/theme_provider.dart';
 
@@ -93,6 +94,7 @@ class _MainNavigationState extends State<MainNavigation> {
   static const List<Widget> _screens = <Widget>[
     HomeScreen(),
     PlayScreen(),
+    WorldMapScreen(),
     ChallengesScreen(),
     ProgressScreen(),
     ProfileScreen(),
@@ -127,6 +129,10 @@ class _MainNavigationState extends State<MainNavigation> {
           BottomNavigationBarItem(
             icon: const Icon(Icons.videogame_asset),
             label: loc.play,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.auto_awesome),
+            label: 'Story Mode',
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.emoji_events),

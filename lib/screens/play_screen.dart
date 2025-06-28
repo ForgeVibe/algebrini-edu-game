@@ -27,7 +27,7 @@ class _PlayScreenState extends State<PlayScreen> {
       MaterialPageRoute(
         builder: (context) => LevelSelectionScreen(
           gameId: game.id,
-          gameTitle: game.title,
+          chapterTitle: game.title,
         ),
       ),
     );

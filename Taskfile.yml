@@ -129,7 +129,7 @@ tasks:
     cmds:
       - |
         echo "Running tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/
 
   test:integration:
     desc: Run integration tests for Android and Web

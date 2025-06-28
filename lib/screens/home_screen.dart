@@ -333,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
             const SizedBox(width: 16),
             Expanded(
               child: Text(
-                'Try today's Daily Challenge for a bonus reward!',
+                'Try today\'s Daily Challenge for a bonus reward!',
                 style: GoogleFonts.baloo2(
                   fontSize: 18,
                   color: Colors.pink.shade700,
