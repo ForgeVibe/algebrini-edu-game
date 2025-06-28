@@ -148,36 +148,66 @@ task build-android
 
 ## 🛠️ Taskfile Commands
 
-The project uses [Task](https://taskfile.dev/) for all development, build, and CI automation. Here are the available commands:
+The project uses [Task](https://taskfile.dev/) for all development, build, and CI automation. Tasks are organized into logical categories with prefixes:
 
+### **Environment Management (`env:*`)**
 | Task                | Description                                      |
 |---------------------|--------------------------------------------------|
-| dev                 | Start development server (background)            |
-| dev-fg              | Start development server (foreground)            |
-| build-dev           | Build development Docker image                   |
-| build-prod          | Build production Docker image                    |
-| build-web           | Build web app for production                     |
-| build-web-image     | Build web production Docker image                |
-| build-android       | Build Android APK                                |
-| build-android-image | Build Android Docker image                       |
-| test                | Run all tests with coverage                      |
-| build-test          | Build testing Docker image                       |
-| format              | Format Dart code                                 |
-| analyze             | Analyze Dart code                                |
-| stop                | Stop Algebrini development containers            |
-| stop-all            | Stop all Algebrini containers                    |
-| logs                | View development server logs                     |
-| restart             | Restart development server                       |
-| clean               | Clean Docker images and containers               |
-| clean-all           | Clean everything including Flutter SDK           |
-| status              | Show development environment status              |
-| ci                  | Run complete CI/CD pipeline                     |
+| env:dev             | Start development server (background)            |
+| env:dev-fg          | Start development server (foreground)            |
+| env:build-dev       | Build development Docker image                   |
+| env:stop            | Stop Algebrini development containers            |
+| env:stop-all        | Stop all Algebrini containers                    |
+| env:logs            | View development server logs                     |
+| env:restart         | Restart development server                       |
+| env:status          | Show development environment status              |
+| env:clean           | Clean Docker images and containers               |
+| env:clean-all       | Clean everything including Flutter SDK           |
+
+### **Testing (`test:*`)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| test:run            | Run all tests with coverage                      |
+| test:integration    | Run integration tests for Android and Web        |
+| test:coverage       | Run tests with coverage report                   |
+| test:build          | Build testing Docker image                       |
+
+### **Build (`build:*`)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| build:web           | Build web app for production                     |
+| build:web-image     | Build web production Docker image                |
+| build:android       | Build Android APK                                |
+| build:android-image | Build Android Docker image                       |
+| build:prod          | Build production Docker image                    |
+
+### **Deployment (`deploy:*`)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| deploy:web          | Serve production web app with nginx              |
+
+### **Code Quality (`code:*`)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| code:format         | Format Dart code                                 |
+| code:analyze        | Analyze Dart code                                |
+
+### **CI/CD (`ci:*`)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| ci:run              | Run complete CI/CD pipeline                      |
+
+### **Utility**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
 | help                | Show detailed help                               |
 | default             | Show help by default (when running `task`)       |
 
 Run `task <taskname>` to execute a task. For example:
 ```bash
-task dev
+task env:dev
+task test:run
+task build:web
 ```
 
 ## 🐳 Docker Development (Updated)
@@ -185,22 +215,22 @@ task dev
 ### **Quick Docker Setup (Recommended)**
 ```bash
 # Start development server (background)
-task dev
+task env:dev
 
 # View logs
-task logs
+task env:logs
 
 # Stop development server
-task stop
+task env:stop
 
 # Build for production
-task build-web
-task serve-web
+task build:web
+task deploy:web
 ```
 
 ### **Safer Container Management**
-- `task stop` and `task stop-all` only affect Algebrini containers, not your entire Docker environment.
-- Use `task clean` to remove only Algebrini images and containers.
+- `task env:stop` and `task env:stop-all` only affect Algebrini containers, not your entire Docker environment.
+- Use `task env:clean` to remove only Algebrini images and containers.
 
 ### **Manual Docker Commands (Advanced)**
 ```bash
@@ -272,10 +302,10 @@ Add new languages by creating files in `assets/translations/`:
 ### **Web Deployment**
 ```bash
 # Build for production
-task build-web
+task build:web
 
 # Serve with nginx
-task serve-web
+task deploy:web
 
 # Or deploy to any static hosting service
 ```
@@ -283,7 +313,7 @@ task serve-web
 ### **Mobile Deployment**
 ```bash
 # Build Android APK
-task build-android
+task build:android
 
 # Build iOS (requires macOS)
 flutter build ios
@@ -294,7 +324,7 @@ flutter build ios
 1. **Fork the repository**
 2. **Create a feature branch**: `git checkout -b feature/new-feature`
 3. **Make your changes**
-4. **Run tests**: `task test`
+4. **Run tests**: `task test:run`
 5. **Commit your changes**: `git commit -am 'Add new feature'`
 6. **Push to the branch**: `git push origin feature/new-feature`
 7. **Submit a pull request**
