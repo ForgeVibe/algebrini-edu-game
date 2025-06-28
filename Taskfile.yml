@@ -1,453 +1,82 @@
 version: '3'
 
-vars:
-  IMAGE_NAME: algebrini-flutter
-  FLUTTER_VERSION: '3.19.6'
-  FLUTTER_TAR: 'flutter_linux_{{.FLUTTER_VERSION}}-stable.tar.xz'
-  FLUTTER_URL: 'https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/{{.FLUTTER_TAR}}'
-  DOCKER_CONTEXT: '.'
-  DOWNLOADS_DIR: './infra/downloads'
-  CONTAINER_NAME: algebrini-dev
+# Algebrini Educational Game Taskfile
+# Organized by categories with prefixes for better navigation
 
-tasks:
-  # ============================================================================
-  # ENVIRONMENT TASKS
-  # ============================================================================
-  
-  env:dev:
-    desc: Start development environment with hot reload (background)
-    deps: [env:download-flutter, env:build-dev]
-    cmds:
-      - |
-        echo "Starting Algebrini development server in background..."
-        docker run -d -p 5052:5000 -p 5053:8080 --name {{.CONTAINER_NAME}} {{.IMAGE_NAME}}:development
-        echo "Development server started in background"
-        echo "App available at: http://localhost:5052"
-        echo "Logs available with: task env:logs"
+# ===== ENVIRONMENT & SETUP =====
+env:status:
+  desc: Check development environment status
+  cmds:
+    - echo "=== Environment Status ==="
+    - echo "Flutter SDK: $(which flutter 2>/dev/null || echo 'Not found')"
+    - echo "Dart SDK: $(which dart 2>/dev/null || echo 'Not found')"
+    - echo "Node.js: $(which node 2>/dev/null || echo 'Not found')"
+    - echo "npm: $(which npm 2>/dev/null || echo 'Not found')"
+    - echo "Docker: $(which docker 2>/dev/null || echo 'Not found')"
+    - echo "Docker Compose: $(which docker-compose 2>/dev/null || echo 'Not found')"
+    - echo ""
+    - echo "=== Database Status ==="
+    - task: db:status
 
-  env:dev-fg:
-    desc: Start development environment with hot reload (foreground)
-    deps: [env:download-flutter, env:build-dev]
-    cmds:
-      - |
-        echo "Starting Algebrini development server..."
-        docker run --rm -p 5052:5000 -p 5053:8080 {{.IMAGE_NAME}}:development
+# ===== DATABASE MANAGEMENT =====
+db:start:
+  desc: Start development database stack
+  cmds:
+    - cd infra/database/dev
+    - docker compose up -d
+    - echo "Database stack started"
+    - echo "PostgreSQL: localhost:5432"
+    - echo "Redis: localhost:6379"
+    - echo "pgAdmin: http://localhost:8081"
 
-  env:build-dev:
-    desc: Build development Docker image
-    deps: [env:download-flutter]
-    cmds:
-      - |
-        echo "Building development image..."
-        docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target development -t {{.IMAGE_NAME}}:development -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
+db:stop:
+  desc: Stop development database stack
+  cmds:
+    - cd infra/database/dev
+    - docker compose down
+    - echo "Database stack stopped"
 
-  env:stop:
-    desc: Stop Algebrini development containers
-    cmds:
-      - |
-        echo "Stopping Algebrini containers..."
-        docker stop {{.CONTAINER_NAME}} 2>/dev/null || echo "No running Algebrini container found"
-        docker rm {{.CONTAINER_NAME}} 2>/dev/null || echo "No Algebrini container to remove"
+db:status:
+  desc: Check database stack status
+  cmds:
+    - cd infra/database/dev
+    - docker compose ps
+    - echo ""
+    - echo "Database connection test:"
+    - docker compose exec -T postgres pg_isready -U algebrini_user || echo "PostgreSQL not ready"
+    - docker compose exec -T redis redis-cli ping || echo "Redis not ready"
 
-  env:stop-all:
-    desc: Stop all Algebrini containers
-    cmds:
-      - |
-        echo "Stopping all Algebrini containers..."
-        docker ps -q --filter "ancestor={{.IMAGE_NAME}}:development" | xargs -r docker stop
-        docker ps -aq --filter "ancestor={{.IMAGE_NAME}}:development" | xargs -r docker rm
+db:restart:
+  desc: Restart development database stack
+  cmds:
+    - task: db:stop
+    - task: db:start
 
-  env:logs:
-    desc: View development server logs
-    cmds:
-      - docker logs -f {{.CONTAINER_NAME}}
+db:logs:
+  desc: Show database logs
+  cmds:
+    - cd infra/database/dev
+    - docker compose logs --tail=50
 
-  env:restart:
-    desc: Restart development server
-    cmds:
-      - task: env:stop
-      - task: env:dev
+db:backup:
+  desc: Create database backup
+  cmds:
+    - cd infra/database
+    - ./scripts/backup.sh dev
 
-  env:status:
-    desc: Check development environment status
-    cmds:
-      - echo "=== Environment Status ==="
-      - echo "Flutter SDK: $(which flutter 2>/dev/null || echo 'Not found')"
-      - echo "Dart SDK: $(which dart 2>/dev/null || echo 'Not found')"
-      - echo "Node.js: $(which node 2>/dev/null || echo 'Not found')"
-      - echo "npm: $(which npm 2>/dev/null || echo 'Not found')"
-      - echo "Docker: $(which docker 2>/dev/null || echo 'Not found')"
-      - echo "Docker Compose: $(which docker-compose 2>/dev/null || echo 'Not found')"
-      - echo ""
-      - echo "=== Database Status ==="
-      - task: db:status
+db:restore:
+  desc: Restore database from backup
+  cmds:
+    - cd infra/database
+    - ./scripts/restore.sh dev
 
-  env:download-flutter:
-    desc: Download Flutter SDK if not present
-    cmds:
-      - |
-        if [ ! -f "{{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}" ]; then
-          echo "Downloading Flutter SDK..."
-          mkdir -p {{.DOWNLOADS_DIR}}
-          wget -O "{{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}" "{{.FLUTTER_URL}}"
-          echo "Flutter SDK downloaded"
-        else
-          echo "Flutter SDK already present"
-        fi
-
-  env:clean:
-    desc: Clean Docker images and containers
-    cmds:
-      - |
-        echo "Cleaning up Docker resources..."
-        task: env:stop-all
-        docker system prune -f
-        docker rmi {{.IMAGE_NAME}}:development {{.IMAGE_NAME}}:testing {{.IMAGE_NAME}}:web-build {{.IMAGE_NAME}}:android-build {{.IMAGE_NAME}}:production 2>/dev/null || true
-        echo "Cleanup completed"
-
-  env:clean-all:
-    desc: Clean everything including Flutter SDK
-    cmds:
-      - |
-        task: env:clean
-        rm -f {{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}
-        echo "Complete cleanup finished"
-
-  # ============================================================================
-  # DATABASE TASKS
-  # ============================================================================
-
-  db:dev:start:
-    desc: Start development database (PostgreSQL + Redis + pgAdmin)
-    cmds:
-      - |
-        echo "Starting development database..."
-        cd infra/database/dev
-        cp env.example .env 2>/dev/null || echo "Using existing .env file"
-        docker-compose up -d
-        echo "Development database started"
-        echo "PostgreSQL: localhost:5432"
-        echo "pgAdmin: http://localhost:8081"
-        echo "Redis: localhost:6379"
-
-  db:dev:stop:
-    desc: Stop development database
-    cmds:
-      - |
-        echo "Stopping development database..."
-        cd infra/database/dev
-        docker-compose down
-        echo "Development database stopped"
-
-  db:dev:restart:
-    desc: Restart development database
-    cmds:
-      - task: db:dev:stop
-      - task: db:dev:start
-
-  db:dev:logs:
-    desc: View development database logs
-    cmds:
-      - |
-        cd infra/database/dev
-        docker-compose logs -f
-
-  db:dev:status:
-    desc: Show development database status
-    cmds:
-      - |
-        echo "Development Database Status"
-        echo "==========================="
-        cd infra/database/dev
-        docker-compose ps
-        echo ""
-        echo "Connection details:"
-        echo "  PostgreSQL: localhost:5432"
-        echo "  Database: algebrini_dev"
-        echo "  User: algebrini_user"
-        echo "  pgAdmin: http://localhost:8081"
-
-  db:dev:reset:
-    desc: Reset development database (drop and recreate)
-    cmds:
-      - |
-        echo "Resetting development database..."
-        cd infra/database/dev
-        docker-compose down -v
-        docker-compose up -d
-        echo "Development database reset complete"
-
-  db:prod:start:
-    desc: Start production database with monitoring
-    cmds:
-      - |
-        echo "Starting production database..."
-        cd infra/database/prod
-        cp env.example .env 2>/dev/null || echo "Using existing .env file"
-        echo "WARNING: Please update .env with secure passwords before starting"
-        docker-compose up -d
-        echo "Production database started"
-        echo "PostgreSQL: localhost:5432"
-        echo "pgAdmin: http://localhost:8080"
-        echo "Grafana: http://localhost:3000"
-        echo "Prometheus: http://localhost:9090"
-
-  db:prod:stop:
-    desc: Stop production database
-    cmds:
-      - |
-        echo "Stopping production database..."
-        cd infra/database/prod
-        docker-compose down
-        echo "Production database stopped"
-
-  db:backup:
-    desc: Create database backup
-    cmds:
-      - |
-        echo "Creating database backup..."
-        cd infra/database/scripts
-        ./backup.sh algebrini_dev ./backups
-        echo "Backup completed"
-
-  db:restore:
-    desc: Restore database from backup
-    cmds:
-      - |
-        echo "Restoring database from backup..."
-        echo "Usage: task db:restore -- <backup_file> [database_name]"
-        echo "Example: task db:restore -- ./backups/algebrini_dev_20241201_120000.dump"
-        cd infra/database/scripts
-        ./restore.sh {{.CLI_ARGS}}
-
-  db:monitor:
-    desc: Monitor database performance
-    cmds:
-      - |
-        echo "Opening database monitoring tools..."
-        echo "pgAdmin: http://localhost:8080"
-        echo "Grafana: http://localhost:3000"
-        echo "Prometheus: http://localhost:9090"
-        echo ""
-        echo "Use 'task db:dev:start' or 'task db:prod:start' to start databases first"
-
-  # ============================================================================
-  # TESTING TASKS
-  # ============================================================================
-
-  test:run:
-    desc: Run all tests with coverage
-    deps: [env:download-flutter, test:build]
-    cmds:
-      - |
-        echo "Running tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/
-
-  test:integration:
-    desc: Run integration tests for Android and Web
-    deps: [env:download-flutter, test:build]
-    cmds:
-      - |
-        echo "Running integration tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/
-
-  test:coverage:
-    desc: Run tests with coverage report
-    deps: [env:download-flutter, test:build]
-    cmds:
-      - |
-        echo "Running tests with coverage..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/ --coverage
-        echo "Coverage report generated"
-
-  test:build:
-    desc: Build testing Docker image
-    deps: [env:download-flutter]
-    cmds:
-      - |
-        echo "Building test image..."
-        docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target testing -t {{.IMAGE_NAME}}:testing -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
-
-  test:unit:
-    desc: Run unit tests
-    cmds:
-      - flutter test
-
-  test:database:
-    desc: Test database integration
-    cmds:
-      - echo "Testing database integration..."
-      - task: db:status
-      - task: api:test
-      - echo "Database integration test completed"
-
-  # ============================================================================
-  # BUILD TASKS
-  # ============================================================================
-
-  build:web:
-    desc: Build web app for production
-    deps: [env:download-flutter, build:web-image]
-    cmds:
-      - echo "Web app built successfully"
-
-  build:web-image:
-    desc: Build web production Docker image
-    deps: [env:download-flutter]
-    cmds:
-      - |
-        echo "Building web production image..."
-        docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target web-build -t {{.IMAGE_NAME}}:web-build -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
-
-  build:android:
-    desc: Build Android APK
-    deps: [env:download-flutter, build:android-image]
-    cmds:
-      - echo "Android APK built successfully"
-
-  build:android-image:
-    desc: Build Android Docker image
-    deps: [env:download-flutter]
-    cmds:
-      - |
-        echo "Building Android image..."
-        docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target android-build -t {{.IMAGE_NAME}}:android-build -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
-
-  build:prod:
-    desc: Build production Docker image
-    deps: [env:download-flutter]
-    cmds:
-      - |
-        echo "Building production image..."
-        docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target production -t {{.IMAGE_NAME}}:production -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
-
-  build:all:
-    desc: Build for all platforms
-    cmds:
-      - task: build:android
-      - task: build:web
-
-  # ============================================================================
-  # DEPLOYMENT TASKS
-  # ============================================================================
-
-  deploy:web:
-    desc: Serve production web app with nginx
-    deps: [env:download-flutter, build:prod]
-    cmds:
-      - |
-        echo "Starting production web server..."
-        docker run --rm -p 80:80 {{.IMAGE_NAME}}:production
-
-  # ============================================================================
-  # CODE QUALITY TASKS
-  # ============================================================================
-
-  code:format:
-    desc: Format Dart code
-    deps: [env:build-dev]
-    cmds:
-      - |
-        echo "Formatting code..."
-        docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development flutter format .
-
-  code:analyze:
-    desc: Analyze Dart code
-    deps: [env:build-dev]
-    cmds:
-      - |
-        echo "Analyzing code..."
-        docker run --rm {{.IMAGE_NAME}}:development flutter analyze
-
-  code:lint:
-    desc: Run linting
-    cmds:
-      - flutter analyze --fatal-infos
-
-  code:fix:
-    desc: Fix common code issues
-    cmds:
-      - task: code:format
-      - task: code:analyze
-
-  # ============================================================================
-  # CI/CD TASKS
-  # ============================================================================
-
-  ci:run:
-    desc: Run complete CI/CD pipeline
-    deps: [test:run, build:web, build:android]
-    cmds:
-      - echo "CI/CD pipeline completed successfully"
-
-  ci:test:
-    desc: Run CI test suite
-    cmds:
-      - task: code:lint
-      - task: test:unit
-      - task: test:coverage
-
-  ci:build:
-    desc: Run CI build
-    cmds:
-      - task: build:all
-      - echo "CI build completed"
-
-  # ============================================================================
-  # UTILITY TASKS
-  # ============================================================================
-
-  help:
-    desc: Show detailed help
-    cmds:
-      - |
-        echo "Algebrini Educational Game - Task Commands"
-        echo "=========================================="
-        echo ""
-        echo "Environment Commands:"
-        echo "  task env:dev       - Start development server in background"
-        echo "  task env:dev-fg    - Start development server (foreground)"
-        echo "  task env:logs      - View development logs"
-        echo "  task env:stop      - Stop development server"
-        echo "  task env:restart   - Restart development server"
-        echo "  task env:status    - Show environment status"
-        echo "  task env:clean     - Clean Docker resources"
-        echo ""
-        echo "Database Commands:"
-        echo "  task db:dev:start  - Start development database"
-        echo "  task db:dev:stop   - Stop development database"
-        echo "  task db:dev:status - Show database status"
-        echo "  task db:dev:reset  - Reset development database"
-        echo "  task db:prod:start - Start production database"
-        echo "  task db:backup     - Create database backup"
-        echo "  task db:restore    - Restore database from backup"
-        echo "  task db:monitor    - Open monitoring tools"
-        echo ""
-        echo "Build Commands:"
-        echo "  task build:web     - Build web app for production"
-        echo "  task build:android - Build Android APK"
-        echo ""
-        echo "Testing Commands:"
-        echo "  task test:run      - Run Flutter tests"
-        echo "  task test:integration - Run integration tests"
-        echo "  task test:coverage - Run tests with coverage"
-        echo ""
-        echo "Code Quality Commands:"
-        echo "  task code:format   - Format Dart code"
-        echo "  task code:analyze  - Analyze Dart code"
-        echo ""
-        echo "Deployment Commands:"
-        echo "  task deploy:web    - Serve production web app"
-        echo ""
-        echo "CI/CD Commands:"
-        echo "  task ci:run        - Run complete CI/CD pipeline"
-        echo ""
-        echo "For more information, run: task --list"
-
-  default:
-    desc: Show help by default
-    cmds:
-      - task: help 
+db:monitor:
+  desc: Monitor database performance
+  cmds:
+    - cd infra/database/dev
+    - docker compose exec postgres psql -U algebrini_user -d algebrini_dev -c "SELECT version();"
+    - echo ""
+    - docker compose exec postgres psql -U algebrini_user -d algebrini_dev -c "SELECT count(*) as total_tables FROM information_schema.tables WHERE table_schema = 'public';"
 
 # ===== API SERVER =====
 api:install:
@@ -461,13 +90,26 @@ api:start:
   desc: Start API server
   cmds:
     - cd api
-    - npm start
+    - nohup node server.js > api.log 2>&1 &
+    - echo "API server started in background"
+    - echo "Logs: api/api.log"
 
-api:dev:
-  desc: Start API server in development mode
+api:stop:
+  desc: Stop API server
   cmds:
-    - cd api
-    - npm run dev
+    - pkill -f "node server.js" || echo "No API server running"
+    - echo "API server stopped"
+
+api:status:
+  desc: Check API server status
+  cmds:
+    - echo "API Server Status:"
+    - curl -s http://localhost:3000/api/health || echo "API server not responding"
+    - echo ""
+    - echo "API endpoints:"
+    - echo "  Health: http://localhost:3000/api/health"
+    - echo "  Games: http://localhost:3000/api/games"
+    - echo "  Chapters: http://localhost:3000/api/chapters"
 
 api:test:
   desc: Test API endpoints
@@ -475,6 +117,79 @@ api:test:
     - echo "Testing API endpoints..."
     - curl -s http://localhost:3000/api/health || echo "API server not running"
     - curl -s http://localhost:3000/api/games | head -c 100 || echo "Games endpoint not responding"
+
+# ===== TESTING =====
+test:unit:
+  desc: Run unit tests
+  cmds:
+    - flutter test
+
+test:integration:
+  desc: Run integration tests
+  cmds:
+    - flutter test integration_test/
+
+test:coverage:
+  desc: Generate test coverage report
+  cmds:
+    - flutter test --coverage
+    - genhtml coverage/lcov.info -o coverage/html
+    - echo "Coverage report generated at coverage/html/index.html"
+
+test:database:
+  desc: Test database integration
+  cmds:
+    - echo "Testing database integration..."
+    - task: db:status
+    - task: api:test
+    - echo "Database integration test completed"
+
+# ===== BUILD & DEPLOY =====
+build:android:
+  desc: Build Android APK
+  cmds:
+    - flutter build apk --release
+    - echo "APK built at build/app/outputs/flutter-apk/app-release.apk"
+
+build:ios:
+  desc: Build iOS app
+  cmds:
+    - flutter build ios --release
+    - echo "iOS app built"
+
+build:web:
+  desc: Build web app
+  cmds:
+    - flutter build web --release
+    - echo "Web app built at build/web/"
+
+build:all:
+  desc: Build for all platforms
+  cmds:
+    - task: build:android
+    - task: build:web
+
+# ===== CODE QUALITY =====
+code:format:
+  desc: Format Dart code
+  cmds:
+    - dart format lib/ test/ integration_test/
+
+code:analyze:
+  desc: Analyze Dart code
+  cmds:
+    - flutter analyze
+
+code:lint:
+  desc: Run linting
+  cmds:
+    - flutter analyze --fatal-infos
+
+code:fix:
+  desc: Fix common code issues
+  cmds:
+    - task: code:format
+    - task: code:analyze
 
 # ===== DEVELOPMENT WORKFLOW =====
 dev:setup:
@@ -490,12 +205,13 @@ dev:start:
   desc: Start development environment
   cmds:
     - task: db:start
-    - task: api:dev
+    - task: api:start
 
 dev:stop:
   desc: Stop development environment
   cmds:
     - task: db:stop
+    - task: api:stop
     - echo "Development environment stopped"
 
 dev:reset:
@@ -505,7 +221,29 @@ dev:reset:
     - task: api:install
     - task: api:start
 
-# ===== DEPENDENCY MANAGEMENT =====
+# ===== CI/CD =====
+ci:test:
+  desc: Run CI test suite
+  cmds:
+    - task: code:lint
+    - task: test:unit
+    - task: test:coverage
+
+ci:build:
+  desc: Run CI build
+  cmds:
+    - task: build:all
+    - echo "CI build completed"
+
+# ===== UTILITIES =====
+clean:
+  desc: Clean build artifacts
+  cmds:
+    - flutter clean
+    - rm -rf build/
+    - rm -rf coverage/
+    - echo "Build artifacts cleaned"
+
 deps:get:
   desc: Get Flutter dependencies
   cmds:
@@ -521,29 +259,20 @@ deps:outdated:
   cmds:
     - flutter pub deps
 
-# ===== CLEANUP =====
-clean:
-  desc: Clean build artifacts
+# ===== HELP =====
+help:
+  desc: Show available tasks
   cmds:
-    - flutter clean
-    - rm -rf build/
-    - rm -rf coverage/
-    - echo "Build artifacts cleaned"
-
-  clean:
-    desc: Clean Docker images and containers
-    cmds:
-      - |
-        echo "Cleaning up Docker resources..."
-        task: env:stop-all
-        docker system prune -f
-        docker rmi {{.IMAGE_NAME}}:development {{.IMAGE_NAME}}:testing {{.IMAGE_NAME}}:web-build {{.IMAGE_NAME}}:android-build {{.IMAGE_NAME}}:production 2>/dev/null || true
-        echo "Cleanup completed"
-
-  clean-all:
-    desc: Clean everything including Flutter SDK
-    cmds:
-      - |
-        task: env:clean
-        rm -f {{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}
-        echo "Complete cleanup finished" 
+    - echo "Available task categories:"
+    - echo "  env:*     - Environment and setup tasks"
+    - echo "  db:*      - Database management tasks"
+    - echo "  api:*     - API server tasks"
+    - echo "  test:*    - Testing tasks"
+    - echo "  build:*   - Build and deployment tasks"
+    - echo "  code:*    - Code quality tasks"
+    - echo "  dev:*     - Development workflow tasks"
+    - echo "  ci:*      - CI/CD tasks"
+    - echo "  deps:*    - Dependency management tasks"
+    - echo ""
+    - echo "Use 'task --list' to see all available tasks"
+    - echo "Use 'task <task-name>' to run a specific task" 
