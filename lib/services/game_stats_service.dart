@@ -1,4 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
+import 'rewards_service.dart';
+import 'analytics_service.dart';
 
 class GameStatsService {
   static const String _totalGamesPlayedKey = 'totalGamesPlayed';
@@ -30,8 +32,12 @@ class GameStatsService {
       if (newStreak > bestStreak) {
         await prefs.setInt(_bestStreakKey, newStreak);
       }
+      // Award 1 coin for each correct answer
+      await RewardsService.addCoins(1);
+      await AnalyticsService.logEvent('correct_answer', details: {'gameType': gameType});
     } else {
       await prefs.setInt(_currentStreakKey, 0);
+      await AnalyticsService.logEvent('incorrect_answer', details: {'gameType': gameType});
     }
     
     // Update last played
@@ -52,6 +58,9 @@ class GameStatsService {
       final equationsCompleted = (prefs.getInt(_equationsCompletedKey) ?? 0) + 1;
       await prefs.setInt(_equationsCompletedKey, equationsCompleted);
     }
+    // Award 5 stars for each game completion
+    await RewardsService.addStars(5);
+    await AnalyticsService.logEvent('game_completed', details: {'gameType': gameType});
   }
 
   static Future<Map<String, dynamic>> getStats() async {
@@ -79,5 +88,6 @@ class GameStatsService {
   static Future<void> resetProgress() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();
+    await AnalyticsService.logEvent('progress_reset');
   }
 } 

@@ -8,6 +8,9 @@ import 'screens/play_screen.dart';
 import 'screens/progress_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/challenges_screen.dart';
+import 'services/font_size_provider.dart';
+import 'services/theme_provider.dart';
 
 void main() {
   runApp(const AlgebriniApp());
@@ -20,30 +23,55 @@ class AlgebriniApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        // Add providers here as needed
+        ChangeNotifierProvider(create: (_) => FontSizeProvider()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: 'Algebrini',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-          useMaterial3: true,
-          fontFamily: 'Roboto',
-          visualDensity: VisualDensity.adaptivePlatformDensity,
-        ),
-        localizationsDelegates: const [
-          AppLocalizations.delegate,
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-        ],
-        supportedLocales: const [
-          Locale('en'),
-          Locale('fr'),
-          Locale('es'),
-          Locale('de'),
-        ],
-        home: const MainNavigation(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          final highContrast = themeProvider.highContrast;
+          return MaterialApp(
+            title: 'Algebrini',
+            debugShowCheckedModeBanner: false,
+            theme: highContrast
+                ? ThemeData(
+                    colorScheme: ColorScheme.highContrastDark(
+                      primary: Colors.black,
+                      secondary: Colors.yellow,
+                      surface: Colors.white,
+                      background: Colors.black,
+                      error: Colors.red.shade900,
+                    ),
+                    useMaterial3: true,
+                    fontFamily: 'Roboto',
+                    visualDensity: VisualDensity.adaptivePlatformDensity,
+                    scaffoldBackgroundColor: Colors.black,
+                    textTheme: const TextTheme(
+                      bodyLarge: TextStyle(color: Colors.yellow),
+                      bodyMedium: TextStyle(color: Colors.yellow),
+                      bodySmall: TextStyle(color: Colors.yellow),
+                    ),
+                  )
+                : ThemeData(
+                    colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+                    useMaterial3: true,
+                    fontFamily: 'Roboto',
+                    visualDensity: VisualDensity.adaptivePlatformDensity,
+                  ),
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('fr'),
+              Locale('es'),
+              Locale('de'),
+            ],
+            home: const MainNavigation(),
+          );
+        },
       ),
     );
   }
@@ -58,19 +86,30 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
+  
+  // Global key to access this state from other widgets
+  static final GlobalKey<_MainNavigationState> globalKey = GlobalKey<_MainNavigationState>();
 
   static const List<Widget> _screens = <Widget>[
     HomeScreen(),
     PlayScreen(),
+    ChallengesScreen(),
     ProgressScreen(),
     ProfileScreen(),
     SettingsScreen(),
   ];
 
+  void setSelectedIndex(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
     return Scaffold(
+      key: globalKey,
       body: _screens[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
@@ -88,6 +127,10 @@ class _MainNavigationState extends State<MainNavigation> {
           BottomNavigationBarItem(
             icon: const Icon(Icons.videogame_asset),
             label: loc.play,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.emoji_events),
+            label: 'Challenges',
           ),
           BottomNavigationBarItem(
             icon: const Icon(Icons.bar_chart),

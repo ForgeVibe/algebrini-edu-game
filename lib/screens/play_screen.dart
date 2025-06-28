@@ -3,6 +3,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:algebrini_edu_game/models/minigame.dart';
 import 'package:algebrini_edu_game/services/game_registry.dart';
 import 'package:algebrini_edu_game/screens/game_screen.dart';
+import 'level_selection_screen.dart';
 
 class PlayScreen extends StatefulWidget {
   const PlayScreen({super.key});
@@ -18,6 +19,18 @@ class _PlayScreenState extends State<PlayScreen> {
   void initState() {
     super.initState();
     _games = GameRegistry().getGames();
+  }
+
+  void _startGame(MiniGame game) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LevelSelectionScreen(
+          gameId: game.id,
+          gameTitle: game.title,
+        ),
+      ),
+    );
   }
 
   @override
@@ -41,14 +54,9 @@ class _PlayScreenState extends State<PlayScreen> {
               subtitle: Text(game.description),
               trailing: const Icon(Icons.play_circle_fill),
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => GameScreen(game: game),
-                  ),
-                );
+                _startGame(game);
               },
-            ),
+                      ),
           );
         },
       ),

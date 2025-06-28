@@ -1,6 +1,7 @@
 import 'package:algebrini_edu_game/models/minigame.dart';
 import 'package:algebrini_edu_game/games/recursive_sequences_game.dart';
 import 'package:algebrini_edu_game/games/simple_equations_game.dart';
+import 'package:algebrini_edu_game/games/factorization_game.dart';
 
 /// A service that provides a list of all available mini-games in the app.
 ///
@@ -18,6 +19,7 @@ class GameRegistry {
   final List<MiniGame> _games = [
     RecursiveSequencesGame(),
     SimpleEquationsGame(),
+    FactorizationGame(),
     // To add a new game, simply instantiate it and add it to this list.
   ];
 

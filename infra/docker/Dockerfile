@@ -55,7 +55,7 @@ COPY --chown=flutteruser:flutteruser . ./
 EXPOSE 5000 8080
 
 # Default command for development
-CMD ["flutter", "run", "-d", "web-server", "--web-port=5000", "--web-hostname=0.0.0.0", "--release"]
+CMD ["flutter", "run", "-d", "web-server", "--web-port=5000", "--web-hostname=0.0.0.0"]
 
 # Testing stage
 FROM development as testing

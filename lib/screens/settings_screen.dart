@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/game_stats_service.dart';
+import 'package:provider/provider.dart';
+import '../services/font_size_provider.dart';
+import '../services/theme_provider.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -18,6 +22,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _musicEnabled = true;
   bool _tutorialEnabled = true;
   bool _hintsEnabled = true;
+  bool _ttsEnabled = true;
+
+  bool get useDyslexiaFont => Provider.of<FontSizeProvider>(context, listen: false).dyslexiaFont;
 
   @override
   void initState() {
@@ -34,6 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _musicEnabled = prefs.getBool('musicEnabled') ?? true;
       _tutorialEnabled = prefs.getBool('tutorialEnabled') ?? true;
       _hintsEnabled = prefs.getBool('hintsEnabled') ?? true;
+      _ttsEnabled = prefs.getBool('ttsEnabled') ?? true;
       _isLoaded = true;
     });
   }
@@ -46,6 +54,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool('musicEnabled', _musicEnabled);
     await prefs.setBool('tutorialEnabled', _tutorialEnabled);
     await prefs.setBool('hintsEnabled', _hintsEnabled);
+    await prefs.setBool('ttsEnabled', _ttsEnabled);
     
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Settings saved!')),
@@ -55,6 +64,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context)!;
+    final fontSizeProvider = Provider.of<FontSizeProvider>(context);
+    final themeProvider = Provider.of<ThemeProvider>(context);
     if (!_isLoaded) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -67,7 +78,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           children: [
             Text(
               loc.settings,
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: useDyslexiaFont
+                  ? GoogleFonts.lexend(fontSize: fontSizeProvider.fontSize + 4)
+                  : Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 24),
             
@@ -145,6 +158,64 @@ class _SettingsScreenState extends State<SettingsScreen> {
             
             const SizedBox(height: 16),
             
+            // Accessibility Settings
+            _buildSettingsCard(
+              'Accessibility',
+              Icons.accessibility_new,
+              Colors.purple,
+              [
+                _buildSwitchSetting(
+                  'Text-to-Speech (TTS)',
+                  _ttsEnabled,
+                  (value) => setState(() => _ttsEnabled = value),
+                ),
+                _buildSwitchSetting(
+                  'Dyslexia-Friendly Font',
+                  fontSizeProvider.dyslexiaFont,
+                  (value) => fontSizeProvider.setDyslexiaFont(value),
+                ),
+                _buildSwitchSetting(
+                  'High Contrast/Colorblind Mode',
+                  themeProvider.highContrast,
+                  (value) => themeProvider.setHighContrast(value),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Font Size', style: TextStyle(fontSize: 16)),
+                          Text(fontSizeProvider.fontSize.toStringAsFixed(0), style: const TextStyle(fontSize: 16)),
+                        ],
+                      ),
+                      Slider(
+                        value: fontSizeProvider.fontSize,
+                        min: 14.0,
+                        max: 32.0,
+                        divisions: 18,
+                        label: fontSizeProvider.fontSize.toStringAsFixed(0),
+                        onChanged: (value) {
+                          fontSizeProvider.setFontSize(value);
+                        },
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          'Preview: The quick brown fox jumps over the lazy dog.',
+                          style: TextStyle(fontSize: fontSizeProvider.fontSize),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            
+            const SizedBox(height: 16),
+            
             // Data Management
             _buildSettingsCard(
               'Data Management',
@@ -209,11 +280,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
+                  style: useDyslexiaFont
+                      ? GoogleFonts.lexend(fontSize: 18, fontWeight: FontWeight.bold, color: color)
+                      : TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
                 ),
               ],
             ),
@@ -231,14 +300,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
+          Text(label, style: useDyslexiaFont ? GoogleFonts.lexend(fontSize: 16) : const TextStyle(fontSize: 16)),
           DropdownButton<String>(
             value: value,
             onChanged: onChanged,
             items: options.entries.map((entry) {
               return DropdownMenuItem<String>(
                 value: entry.key,
-                child: Text(entry.value),
+                child: Text(entry.value, style: useDyslexiaFont ? GoogleFonts.lexend(fontSize: 16) : null),
               );
             }).toList(),
           ),
@@ -253,7 +322,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
+          Text(label, style: useDyslexiaFont ? GoogleFonts.lexend(fontSize: 16) : const TextStyle(fontSize: 16)),
           Switch(
             value: value,
             onChanged: onChanged,
