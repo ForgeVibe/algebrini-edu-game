@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:algebrini_edu_game/models/minigame.dart';
 import 'package:algebrini_edu_game/services/level_progression_service.dart';
+import 'package:algebrini_edu_game/services/game_data_service.dart';
+import 'package:algebrini_edu_game/models/database_models.dart';
 
 class FactorizationGame implements MiniGame {
   int _currentIndex = 0;
@@ -9,6 +11,12 @@ class FactorizationGame implements MiniGame {
   late List<int> _correctFactors;
   late String _hint;
   late String _factorizationType;
+  
+  // Database support
+  GameDataService? _gameDataService;
+  String? _currentLevelId;
+  List<Challenge>? _currentChallenges;
+  bool _useDatabase = false;
 
   // Level-specific numbers with increasing difficulty
   static const Map<int, List<Map<String, dynamic>>> _levelNumbers = {
@@ -114,17 +122,86 @@ class FactorizationGame implements MiniGame {
     ],
   };
 
+  // Constructor for backward compatibility (uses hardcoded data)
   FactorizationGame() {
+    _useDatabase = false;
     _loadChallenge();
   }
 
-  void _loadChallenge() {
+  // Constructor for database-driven data
+  FactorizationGame.withDatabase(GameDataService gameDataService) {
+    _gameDataService = gameDataService;
+    _useDatabase = true;
+    _loadChallenge();
+  }
+
+  void _loadChallenge() async {
+    if (_useDatabase && _gameDataService != null) {
+      await _loadChallengeFromDatabase();
+    } else {
+      _loadChallengeFromHardcoded();
+    }
+  }
+
+  void _loadChallengeFromHardcoded() {
     final levelNumbers = _levelNumbers[_currentLevel] ?? _levelNumbers[1]!;
     final challengeData = levelNumbers[_currentIndex % levelNumbers.length];
     _currentNumber = challengeData['number'];
     _correctFactors = List<int>.from(challengeData['factors']);
     _hint = challengeData['hint'];
     _factorizationType = challengeData['type'];
+  }
+
+  Future<void> _loadChallengeFromDatabase() async {
+    try {
+      // Get levels for the game
+      final levels = await _gameDataService!.getLevels('factorization-fun');
+      if (levels.isEmpty) {
+        // Fallback to hardcoded data
+        _useDatabase = false;
+        _loadChallengeFromHardcoded();
+        return;
+      }
+
+      // Find the current level
+      final currentLevelData = levels.firstWhere(
+        (level) => level.levelNumber == _currentLevel,
+        orElse: () => levels.first,
+      );
+      _currentLevelId = currentLevelData.id;
+
+      // Get challenges for this level
+      _currentChallenges = await _gameDataService!.getChallenges(_currentLevelId!);
+      if (_currentChallenges!.isEmpty) {
+        // Fallback to hardcoded data
+        _useDatabase = false;
+        _loadChallengeFromHardcoded();
+        return;
+      }
+
+      // Get current challenge
+      final challenge = _currentChallenges![_currentIndex % _currentChallenges!.length];
+      
+      // Parse number from question (assuming format like "What are all the factors of 12?")
+      final question = challenge.question;
+      final numberMatch = RegExp(r'factors of (\d+)').firstMatch(question);
+      _currentNumber = numberMatch != null ? int.parse(numberMatch.group(1)!) : 6;
+      
+      // Parse factors from answer (assuming format like "1,2,3,4,6,12")
+      final factorsStr = challenge.answer;
+      _correctFactors = factorsStr.split(',')
+          .map((s) => int.tryParse(s.trim()) ?? 0)
+          .where((n) => n > 0)
+          .toList();
+      
+      _hint = challenge.hint ?? 'A factor is a number that divides evenly into another number.';
+      _factorizationType = 'Database';
+    } catch (e) {
+      print('Error loading challenge from database: $e');
+      // Fallback to hardcoded data
+      _useDatabase = false;
+      _loadChallengeFromHardcoded();
+    }
   }
 
   @override
@@ -147,6 +224,7 @@ class FactorizationGame implements MiniGame {
         'number': _currentNumber,
         'level': _currentLevel,
         'type': _factorizationType,
+        'useDatabase': _useDatabase,
       }
     );
   }
@@ -194,6 +272,30 @@ class FactorizationGame implements MiniGame {
 
   int get currentLevel => _currentLevel;
 
+  // Database-specific methods
+  bool get useDatabase => _useDatabase;
+  
+  String? get currentLevelId => _currentLevelId;
+  
+  List<Challenge>? get currentChallenges => _currentChallenges;
+
+  // Save progress to database
+  Future<bool> saveProgress(String userId, int score, bool completed, {int? timeSeconds, int attempts = 1}) async {
+    if (!_useDatabase || _gameDataService == null || _currentLevelId == null) {
+      return false;
+    }
+
+    return await _gameDataService!.saveUserProgress(
+      userId: userId,
+      gameId: id,
+      levelId: _currentLevelId!,
+      score: score,
+      completed: completed,
+      timeSeconds: timeSeconds,
+      attempts: attempts,
+    );
+  }
+
   // Get available levels for this game
   static List<int> getAvailableLevels() {
     return _levelNumbers.keys.toList();
@@ -226,11 +328,11 @@ class FactorizationGame implements MiniGame {
   // Get level description
   static String getLevelDescription(int level) {
     switch (level) {
-      case 1: return 'Small numbers with simple factorization patterns.';
+      case 1: return 'Small numbers with few factors to get started.';
       case 2: return 'Larger numbers with more factors to find.';
       case 3: return 'Prime numbers and perfect squares.';
-      case 4: return 'Complex numbers with multiple factors.';
-      case 5: return 'Large numbers including primes and powers.';
+      case 4: return 'Complex numbers with many factors.';
+      case 5: return 'Large numbers and challenging factorizations.';
       default: return 'Unknown level.';
     }
   }

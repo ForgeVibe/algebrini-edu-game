@@ -13,6 +13,7 @@ import 'screens/world_map_screen.dart';
 import 'services/font_size_provider.dart';
 import 'services/theme_provider.dart';
 import 'services/game_data_service.dart';
+import 'services/game_registry.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +21,9 @@ void main() async {
   // Initialize database service
   final gameDataService = GameDataService();
   await gameDataService.initialize();
+  
+  // Initialize game registry with database support
+  GameRegistry().initializeWithDatabase(gameDataService);
   
   runApp(AlgebriniApp(gameDataService: gameDataService));
 }

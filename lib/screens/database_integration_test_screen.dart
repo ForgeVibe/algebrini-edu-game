@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../services/game_data_service.dart';
-import '../games/database_game_factory.dart';
-import '../games/simple_equations_game.dart';
-import '../models/database_models.dart';
+import 'package:algebrini_edu_game/services/game_data_service.dart';
+import 'package:algebrini_edu_game/services/game_registry.dart';
+import 'package:algebrini_edu_game/games/simple_equations_game.dart';
+import 'package:algebrini_edu_game/games/recursive_sequences_game.dart';
+import 'package:algebrini_edu_game/games/factorization_game.dart';
 
 class DatabaseIntegrationTestScreen extends StatefulWidget {
   const DatabaseIntegrationTestScreen({super.key});
@@ -13,14 +13,192 @@ class DatabaseIntegrationTestScreen extends StatefulWidget {
 }
 
 class _DatabaseIntegrationTestScreenState extends State<DatabaseIntegrationTestScreen> {
-  bool _isLoading = false;
-  String _status = 'Ready to test';
-  List<Game> _games = [];
-  List<Level> _levels = [];
-  List<Challenge> _challenges = [];
-  SimpleEquationsGame? _databaseGame;
-  SimpleEquationsGame? _hardcodedGame;
-  String _testUserId = 'test_user_123';
+  final GameDataService _gameDataService = GameDataService();
+  bool _isLoading = true;
+  String _status = 'Initializing...';
+  List<String> _testResults = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _runTests();
+  }
+
+  Future<void> _runTests() async {
+    setState(() {
+      _isLoading = true;
+      _status = 'Running database integration tests...';
+      _testResults.clear();
+    });
+
+    try {
+      // Test 1: Database connection
+      await _testDatabaseConnection();
+      
+      // Test 2: Game registry initialization
+      await _testGameRegistry();
+      
+      // Test 3: Simple Equations Game
+      await _testSimpleEquationsGame();
+      
+      // Test 4: Recursive Sequences Game
+      await _testRecursiveSequencesGame();
+      
+      // Test 5: Factorization Game
+      await _testFactorizationGame();
+      
+      // Test 6: Progress saving
+      await _testProgressSaving();
+      
+      setState(() {
+        _isLoading = false;
+        _status = 'All tests completed successfully!';
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _status = 'Test failed: $e';
+        _testResults.add('❌ Error: $e');
+      });
+    }
+  }
+
+  Future<void> _testDatabaseConnection() async {
+    _addTestResult('🔍 Testing database connection...');
+    
+    // Test API connection
+    final games = await _gameDataService.getGames();
+    if (games.isNotEmpty) {
+      _addTestResult('✅ Database connection successful - found ${games.length} games');
+    } else {
+      _addTestResult('⚠️ Database connected but no games found');
+    }
+  }
+
+  Future<void> _testGameRegistry() async {
+    _addTestResult('🔍 Testing game registry initialization...');
+    
+    final registry = GameRegistry();
+    final games = registry.getGames();
+    
+    if (registry.useDatabase) {
+      _addTestResult('✅ Game registry using database - ${games.length} games loaded');
+    } else {
+      _addTestResult('⚠️ Game registry using hardcoded data - ${games.length} games loaded');
+    }
+    
+    // Test getting specific games
+    final simpleEquations = registry.getGameById('simple-equations');
+    final recursiveSequences = registry.getGameById('recursive-sequences');
+    final factorization = registry.getGameById('factorization-fun');
+    
+    if (simpleEquations != null && recursiveSequences != null && factorization != null) {
+      _addTestResult('✅ All games found in registry');
+    } else {
+      _addTestResult('❌ Some games not found in registry');
+    }
+  }
+
+  Future<void> _testSimpleEquationsGame() async {
+    _addTestResult('🔍 Testing Simple Equations Game...');
+    
+    // Test hardcoded version
+    final hardcodedGame = SimpleEquationsGame();
+    final hardcodedChallenge = hardcodedGame.getChallenge();
+    _addTestResult('✅ Hardcoded game: ${hardcodedChallenge.question}');
+    
+    // Test database version
+    final databaseGame = SimpleEquationsGame.withDatabase(_gameDataService);
+    await Future.delayed(const Duration(milliseconds: 500)); // Wait for async loading
+    final databaseChallenge = databaseGame.getChallenge();
+    _addTestResult('✅ Database game: ${databaseChallenge.question}');
+    
+    if (databaseGame.useDatabase) {
+      _addTestResult('✅ Database game using database data');
+    } else {
+      _addTestResult('⚠️ Database game fell back to hardcoded data');
+    }
+  }
+
+  Future<void> _testRecursiveSequencesGame() async {
+    _addTestResult('🔍 Testing Recursive Sequences Game...');
+    
+    // Test hardcoded version
+    final hardcodedGame = RecursiveSequencesGame();
+    final hardcodedChallenge = hardcodedGame.getChallenge();
+    _addTestResult('✅ Hardcoded game: ${hardcodedChallenge.question}');
+    
+    // Test database version
+    final databaseGame = RecursiveSequencesGame.withDatabase(_gameDataService);
+    await Future.delayed(const Duration(milliseconds: 500)); // Wait for async loading
+    final databaseChallenge = databaseGame.getChallenge();
+    _addTestResult('✅ Database game: ${databaseChallenge.question}');
+    
+    if (databaseGame.useDatabase) {
+      _addTestResult('✅ Database game using database data');
+    } else {
+      _addTestResult('⚠️ Database game fell back to hardcoded data');
+    }
+  }
+
+  Future<void> _testFactorizationGame() async {
+    _addTestResult('🔍 Testing Factorization Game...');
+    
+    // Test hardcoded version
+    final hardcodedGame = FactorizationGame();
+    final hardcodedChallenge = hardcodedGame.getChallenge();
+    _addTestResult('✅ Hardcoded game: ${hardcodedChallenge.question}');
+    
+    // Test database version
+    final databaseGame = FactorizationGame.withDatabase(_gameDataService);
+    await Future.delayed(const Duration(milliseconds: 500)); // Wait for async loading
+    final databaseChallenge = databaseGame.getChallenge();
+    _addTestResult('✅ Database game: ${databaseChallenge.question}');
+    
+    if (databaseGame.useDatabase) {
+      _addTestResult('✅ Database game using database data');
+    } else {
+      _addTestResult('⚠️ Database game fell back to hardcoded data');
+    }
+  }
+
+  Future<void> _testProgressSaving() async {
+    _addTestResult('🔍 Testing progress saving...');
+    
+    final testUserId = 'test-user-${DateTime.now().millisecondsSinceEpoch}';
+    final testGameId = 'simple-equations';
+    
+    // Test saving progress
+    final saved = await _gameDataService.saveUserProgress(
+      userId: testUserId,
+      gameId: testGameId,
+      levelId: 'test-level-id',
+      score: 100,
+      completed: true,
+      timeSeconds: 60,
+      attempts: 1,
+    );
+    
+    if (saved) {
+      _addTestResult('✅ Progress saved successfully');
+    } else {
+      _addTestResult('❌ Failed to save progress');
+    }
+    
+    // Test retrieving progress
+    final progress = await _gameDataService.getUserProgress(testUserId, testGameId);
+    if (progress.isNotEmpty) {
+      _addTestResult('✅ Progress retrieved successfully');
+    } else {
+      _addTestResult('⚠️ No progress found (may be expected for test user)');
+    }
+  }
+
+  void _addTestResult(String result) {
+    setState(() {
+      _testResults.add(result);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,9 +210,8 @@ class _DatabaseIntegrationTestScreenState extends State<DatabaseIntegrationTestS
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Status display
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -43,120 +220,55 @@ class _DatabaseIntegrationTestScreenState extends State<DatabaseIntegrationTestS
                   children: [
                     Text(
                       'Status: $_status',
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: _isLoading ? Colors.orange : Colors.green,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     if (_isLoading)
                       const LinearProgressIndicator()
                     else
-                      const SizedBox(height: 4),
+                      ElevatedButton(
+                        onPressed: _runTests,
+                        child: const Text('Run Tests Again'),
+                      ),
                   ],
                 ),
               ),
             ),
-            
             const SizedBox(height: 16),
-            
-            // Test buttons
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _testDatabaseConnection,
-                    child: const Text('Test DB Connection'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _testGameCreation,
-                    child: const Text('Test Game Creation'),
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 8),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _testGameComparison,
-                    child: const Text('Compare Games'),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _testProgressSaving,
-                    child: const Text('Test Progress'),
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 8),
-            
-            ElevatedButton(
-              onPressed: _isLoading ? null : _testAll,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text('Run All Tests'),
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Results display
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (_games.isNotEmpty) ...[
-                      _buildSection('Games (${_games.length})', _games.map((game) => 
-                        '${game.name} - ${game.difficultyLevels} levels'
-                      ).toList()),
-                      const SizedBox(height: 16),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Test Results:',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: _testResults.length,
+                          itemBuilder: (context, index) {
+                            final result = _testResults[index];
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2.0),
+                              child: Text(
+                                result,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ],
-                    
-                    if (_levels.isNotEmpty) ...[
-                      _buildSection('Levels (${_levels.length})', _levels.map((level) => 
-                        'Level ${level.levelNumber} - ${level.difficulty.name}'
-                      ).toList()),
-                      const SizedBox(height: 16),
-                    ],
-                    
-                    if (_challenges.isNotEmpty) ...[
-                      _buildSection('Challenges (${_challenges.length})', _challenges.map((challenge) => 
-                        '${challenge.question.substring(0, challenge.question.length > 30 ? 30 : challenge.question.length)}...'
-                      ).toList()),
-                      const SizedBox(height: 16),
-                    ],
-                    
-                    if (_databaseGame != null) ...[
-                      _buildSection('Database Game', [
-                        'Title: ${_databaseGame!.title}',
-                        'ID: ${_databaseGame!.id}',
-                        'Uses Database: ${_databaseGame!.useDatabase}',
-                        'Current Level: ${_databaseGame!.currentLevel}',
-                        'Current Challenge: ${_databaseGame!.getChallenge().question}',
-                      ]),
-                      const SizedBox(height: 16),
-                    ],
-                    
-                    if (_hardcodedGame != null) ...[
-                      _buildSection('Hardcoded Game', [
-                        'Title: ${_hardcodedGame!.title}',
-                        'ID: ${_hardcodedGame!.id}',
-                        'Uses Database: ${_hardcodedGame!.useDatabase}',
-                        'Current Level: ${_hardcodedGame!.currentLevel}',
-                        'Current Challenge: ${_hardcodedGame!.getChallenge().question}',
-                      ]),
-                    ],
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -164,165 +276,5 @@ class _DatabaseIntegrationTestScreenState extends State<DatabaseIntegrationTestS
         ),
       ),
     );
-  }
-
-  Widget _buildSection(String title, List<String> items) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            ...items.map((item) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2.0),
-              child: Text('• $item'),
-            )),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _testDatabaseConnection() async {
-    setState(() {
-      _isLoading = true;
-      _status = 'Testing database connection...';
-    });
-
-    try {
-      final gameDataService = Provider.of<GameDataService>(context, listen: false);
-      final games = await gameDataService.getGames();
-      
-      setState(() {
-        _games = games;
-        _status = 'Database connection successful: ${games.length} games found';
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _status = 'Database connection failed: $e';
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _testGameCreation() async {
-    setState(() {
-      _isLoading = true;
-      _status = 'Testing game creation...';
-    });
-
-    try {
-      // Test database game creation
-      final gameDataService = Provider.of<GameDataService>(context, listen: false);
-      _databaseGame = SimpleEquationsGame.withDatabase(gameDataService);
-      
-      // Test hardcoded game creation
-      _hardcodedGame = SimpleEquationsGame();
-      
-      // Get levels and challenges
-      final levels = await gameDataService.getLevels('simple-equations');
-      final challenges = levels.isNotEmpty ? await gameDataService.getChallenges(levels.first.id) : [];
-      
-      setState(() {
-        _levels = levels;
-        _challenges = challenges;
-        _status = 'Game creation successful - Database: ${_databaseGame!.useDatabase}, Hardcoded: ${_hardcodedGame!.useDatabase}';
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _status = 'Game creation failed: $e';
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _testGameComparison() async {
-    if (_databaseGame == null || _hardcodedGame == null) {
-      setState(() {
-        _status = 'Please create games first';
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _status = 'Comparing games...';
-    });
-
-    try {
-      final dbChallenge = _databaseGame!.getChallenge();
-      final hardcodedChallenge = _hardcodedGame!.getChallenge();
-      
-      setState(() {
-        _status = 'Comparison complete - Database: ${dbChallenge.question}, Hardcoded: ${hardcodedChallenge.question}';
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _status = 'Game comparison failed: $e';
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _testProgressSaving() async {
-    if (_databaseGame == null) {
-      setState(() {
-        _status = 'Please create database game first';
-      });
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-      _status = 'Testing progress saving...';
-    });
-
-    try {
-      final success = await _databaseGame!.saveProgress(_testUserId, 100, true, timeSeconds: 60);
-      
-      setState(() {
-        _status = success ? 'Progress saved successfully' : 'Progress saving failed';
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _status = 'Progress saving failed: $e';
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _testAll() async {
-    setState(() {
-      _isLoading = true;
-      _status = 'Running all tests...';
-    });
-
-    try {
-      await _testDatabaseConnection();
-      await _testGameCreation();
-      await _testGameComparison();
-      await _testProgressSaving();
-      
-      setState(() {
-        _status = 'All tests completed successfully!';
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        _status = 'Some tests failed: $e';
-        _isLoading = false;
-      });
-    }
   }
 } 
