@@ -120,6 +120,124 @@ tasks:
         echo "Complete cleanup finished"
 
   # ============================================================================
+  # DATABASE TASKS
+  # ============================================================================
+
+  db:dev:start:
+    desc: Start development database (PostgreSQL + Redis + pgAdmin)
+    cmds:
+      - |
+        echo "Starting development database..."
+        cd infra/database/dev
+        cp env.example .env 2>/dev/null || echo "Using existing .env file"
+        docker-compose up -d
+        echo "Development database started"
+        echo "PostgreSQL: localhost:5432"
+        echo "pgAdmin: http://localhost:8081"
+        echo "Redis: localhost:6379"
+
+  db:dev:stop:
+    desc: Stop development database
+    cmds:
+      - |
+        echo "Stopping development database..."
+        cd infra/database/dev
+        docker-compose down
+        echo "Development database stopped"
+
+  db:dev:restart:
+    desc: Restart development database
+    cmds:
+      - task: db:dev:stop
+      - task: db:dev:start
+
+  db:dev:logs:
+    desc: View development database logs
+    cmds:
+      - |
+        cd infra/database/dev
+        docker-compose logs -f
+
+  db:dev:status:
+    desc: Show development database status
+    cmds:
+      - |
+        echo "Development Database Status"
+        echo "==========================="
+        cd infra/database/dev
+        docker-compose ps
+        echo ""
+        echo "Connection details:"
+        echo "  PostgreSQL: localhost:5432"
+        echo "  Database: algebrini_dev"
+        echo "  User: algebrini_user"
+        echo "  pgAdmin: http://localhost:8081"
+
+  db:dev:reset:
+    desc: Reset development database (drop and recreate)
+    cmds:
+      - |
+        echo "Resetting development database..."
+        cd infra/database/dev
+        docker-compose down -v
+        docker-compose up -d
+        echo "Development database reset complete"
+
+  db:prod:start:
+    desc: Start production database with monitoring
+    cmds:
+      - |
+        echo "Starting production database..."
+        cd infra/database/prod
+        cp env.example .env 2>/dev/null || echo "Using existing .env file"
+        echo "WARNING: Please update .env with secure passwords before starting"
+        docker-compose up -d
+        echo "Production database started"
+        echo "PostgreSQL: localhost:5432"
+        echo "pgAdmin: http://localhost:8080"
+        echo "Grafana: http://localhost:3000"
+        echo "Prometheus: http://localhost:9090"
+
+  db:prod:stop:
+    desc: Stop production database
+    cmds:
+      - |
+        echo "Stopping production database..."
+        cd infra/database/prod
+        docker-compose down
+        echo "Production database stopped"
+
+  db:backup:
+    desc: Create database backup
+    cmds:
+      - |
+        echo "Creating database backup..."
+        cd infra/database/scripts
+        ./backup.sh algebrini_dev ./backups
+        echo "Backup completed"
+
+  db:restore:
+    desc: Restore database from backup
+    cmds:
+      - |
+        echo "Restoring database from backup..."
+        echo "Usage: task db:restore -- <backup_file> [database_name]"
+        echo "Example: task db:restore -- ./backups/algebrini_dev_20241201_120000.dump"
+        cd infra/database/scripts
+        ./restore.sh {{.CLI_ARGS}}
+
+  db:monitor:
+    desc: Open database monitoring tools
+    cmds:
+      - |
+        echo "Opening database monitoring tools..."
+        echo "pgAdmin: http://localhost:8080"
+        echo "Grafana: http://localhost:3000"
+        echo "Prometheus: http://localhost:9090"
+        echo ""
+        echo "Use 'task db:dev:start' or 'task db:prod:start' to start databases first"
+
+  # ============================================================================
   # TESTING TASKS
   # ============================================================================
 
@@ -257,6 +375,16 @@ tasks:
         echo "  task env:restart   - Restart development server"
         echo "  task env:status    - Show environment status"
         echo "  task env:clean     - Clean Docker resources"
+        echo ""
+        echo "Database Commands:"
+        echo "  task db:dev:start  - Start development database"
+        echo "  task db:dev:stop   - Stop development database"
+        echo "  task db:dev:status - Show database status"
+        echo "  task db:dev:reset  - Reset development database"
+        echo "  task db:prod:start - Start production database"
+        echo "  task db:backup     - Create database backup"
+        echo "  task db:restore    - Restore database from backup"
+        echo "  task db:monitor    - Open monitoring tools"
         echo ""
         echo "Build Commands:"
         echo "  task build:web     - Build web app for production"
