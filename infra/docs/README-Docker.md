@@ -26,10 +26,17 @@ This Docker environment provides a complete, reproducible setup for developing, 
 
 ### 1. **Development Mode** (Default)
 ```bash
-task dev
+# Complete setup (first time or when you need database/API)
+task dev:setup
+
+# Start development server (background)
+task dev:start
+
+# Start development server (foreground with hot reload)
+task dev:start-fg
 ```
 - Builds development environment
-- Starts Flutter web server on http://localhost:5000
+- Starts Flutter web server on http://localhost:5052
 - Hot reload enabled
 
 ### 2. **Run Tests**
@@ -43,7 +50,7 @@ task test
 ### 3. **Build for Production**
 ```bash
 # Build web app
-task build-web
+task build:web
 
 # Serve production web app
 task serve-web
@@ -51,7 +58,7 @@ task serve-web
 
 ### 4. **Build Android APK**
 ```bash
-task build-android
+task build:android
 ```
 
 ### 5. **CI/CD Pipeline**
@@ -66,16 +73,21 @@ task ci
 
 | Command | Description | Use Case |
 |---------|-------------|----------|
-| `task dev` | Development mode with hot reload | Local development |
+| `task dev:setup` | Complete development environment setup | First time setup |
+| `task dev:start` | Development mode (background) | Daily development |
+| `task dev:start-fg` | Development mode (foreground) | Immediate feedback |
+| `task dev:stop` | Stop development server | Clean shutdown |
+| `task dev:restart` | Restart development server | Quick restart |
+| `task dev:reset` | Reset development environment | Clean slate |
+| `task dev:logs` | View development server logs | Debugging |
 | `task test` | Run all tests with coverage | Quality assurance |
-| `task build-web` | Build optimized web app | Production deployment |
-| `task build-android` | Build Android APK | Mobile distribution |
+| `task build:web` | Build optimized web app | Production deployment |
+| `task build:android` | Build Android APK | Mobile distribution |
 | `task serve-web` | Serve web app with nginx | Production hosting |
 | `task ci` | Full CI/CD pipeline | Automated testing |
 | `task clean` | Clean Docker resources | Maintenance |
 | `task clean-all` | Clean everything including Flutter SDK | Complete reset |
-| `task docs` | Show all available tasks | Documentation |
-| `task help` | Show detailed help | Documentation |
+| `task help` | Show all available tasks | Documentation |
 
 ## 🔧 Manual Docker Commands
 
@@ -252,7 +264,7 @@ build:
 ## 📚 Next Steps
 
 1. **Add your Flutter app code** to the `lib/` directory
-2. **Run development mode** to start coding: `task dev`
+2. **Run development mode** to start coding: `task dev:start`
 3. **Add tests** in the `test/` directory
 4. **Customize nginx.conf** for your domain
 5. **Set up CI/CD** with your preferred platform
@@ -272,9 +284,9 @@ If you were using the old `test_automation.sh` script:
 
 | Old Command | New Command |
 |-------------|-------------|
-| `./test_automation.sh dev` | `task dev` |
+| `./test_automation.sh dev` | `task dev:start` |
 | `./test_automation.sh test` | `task test` |
-| `./test_automation.sh build-web` | `task build-web` |
+| `./test_automation.sh build-web` | `task build:web` |
 | `./test_automation.sh ci` | `task ci` |
 | `./test_automation.sh clean` | `task clean` |
 

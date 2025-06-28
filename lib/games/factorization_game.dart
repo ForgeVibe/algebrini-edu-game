@@ -11,7 +11,7 @@ class FactorizationGame implements MiniGame {
   late List<int> _correctFactors;
   late String _hint;
   late String _factorizationType;
-  
+
   // Database support
   GameDataService? _gameDataService;
   String? _currentLevelId;
@@ -20,7 +20,8 @@ class FactorizationGame implements MiniGame {
 
   // Level-specific numbers with increasing difficulty
   static const Map<int, List<Map<String, dynamic>>> _levelNumbers = {
-    1: [ // Easy - Small numbers with few factors
+    1: [
+      // Easy - Small numbers with few factors
       {
         'number': 6,
         'type': 'Small Composite',
@@ -40,7 +41,8 @@ class FactorizationGame implements MiniGame {
         'factors': [1, 2, 5, 10],
       },
     ],
-    2: [ // Medium - Larger numbers with more factors
+    2: [
+      // Medium - Larger numbers with more factors
       {
         'number': 12,
         'type': 'Multiple Factors',
@@ -60,7 +62,8 @@ class FactorizationGame implements MiniGame {
         'factors': [1, 2, 4, 8, 16],
       },
     ],
-    3: [ // Hard - Prime numbers and larger composites
+    3: [
+      // Hard - Prime numbers and larger composites
       {
         'number': 17,
         'type': 'Prime',
@@ -80,7 +83,8 @@ class FactorizationGame implements MiniGame {
         'factors': [1, 5, 25],
       },
     ],
-    4: [ // Expert - Larger numbers with complex factorization
+    4: [
+      // Expert - Larger numbers with complex factorization
       {
         'number': 28,
         'type': 'Multiple Factors',
@@ -100,7 +104,8 @@ class FactorizationGame implements MiniGame {
         'factors': [1, 2, 3, 4, 6, 9, 12, 18, 36],
       },
     ],
-    5: [ // Master - Complex numbers and large primes
+    5: [
+      // Master - Complex numbers and large primes
       {
         'number': 49,
         'type': 'Perfect Square',
@@ -171,7 +176,8 @@ class FactorizationGame implements MiniGame {
       _currentLevelId = currentLevelData.id;
 
       // Get challenges for this level
-      _currentChallenges = await _gameDataService!.getChallenges(_currentLevelId!);
+      _currentChallenges =
+          await _gameDataService!.getChallenges(_currentLevelId!);
       if (_currentChallenges!.isEmpty) {
         // Fallback to hardcoded data
         _useDatabase = false;
@@ -180,21 +186,25 @@ class FactorizationGame implements MiniGame {
       }
 
       // Get current challenge
-      final challenge = _currentChallenges![_currentIndex % _currentChallenges!.length];
-      
+      final challenge =
+          _currentChallenges![_currentIndex % _currentChallenges!.length];
+
       // Parse number from question (assuming format like "What are all the factors of 12?")
       final question = challenge.question;
       final numberMatch = RegExp(r'factors of (\d+)').firstMatch(question);
-      _currentNumber = numberMatch != null ? int.parse(numberMatch.group(1)!) : 6;
-      
+      _currentNumber =
+          numberMatch != null ? int.parse(numberMatch.group(1)!) : 6;
+
       // Parse factors from answer (assuming format like "1,2,3,4,6,12")
       final factorsStr = challenge.answer;
-      _correctFactors = factorsStr.split(',')
+      _correctFactors = factorsStr
+          .split(',')
           .map((s) => int.tryParse(s.trim()) ?? 0)
           .where((n) => n > 0)
           .toList();
-      
-      _hint = challenge.hint ?? 'A factor is a number that divides evenly into another number.';
+
+      _hint = challenge.hint ??
+          'A factor is a number that divides evenly into another number.';
       _factorizationType = 'Database';
     } catch (e) {
       print('Error loading challenge from database: $e');
@@ -214,34 +224,38 @@ class FactorizationGame implements MiniGame {
   IconData get icon => Icons.filter_9_plus;
 
   @override
-  String get description => 'Enter all factors of the given number, separated by commas.';
+  String get description =>
+      'Enter all factors of the given number, separated by commas.';
 
   @override
   GameChallenge getChallenge() {
     return GameChallenge(
-      question: 'What are all the factors of $_currentNumber?', 
-      data: {
-        'number': _currentNumber,
-        'level': _currentLevel,
-        'type': _factorizationType,
-        'useDatabase': _useDatabase,
-      }
-    );
+        question: 'What are all the factors of $_currentNumber?',
+        data: {
+          'number': _currentNumber,
+          'level': _currentLevel,
+          'type': _factorizationType,
+          'useDatabase': _useDatabase,
+        });
   }
 
   @override
   bool checkAnswer(String answer) {
     // Parse the answer and check if it contains all and only the correct factors
-    final answerParts = answer.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty);
-    final answerFactors = answerParts.map((e) => int.tryParse(e) ?? 0).where((e) => e > 0).toSet();
-    
+    final answerParts =
+        answer.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty);
+    final answerFactors = answerParts
+        .map((e) => int.tryParse(e) ?? 0)
+        .where((e) => e > 0)
+        .toSet();
+
     // Check if all correct factors are present and no extra factors
     if (answerFactors.length != _correctFactors.length) return false;
-    
+
     for (final factor in _correctFactors) {
       if (!answerFactors.contains(factor)) return false;
     }
-    
+
     return true;
   }
 
@@ -274,13 +288,14 @@ class FactorizationGame implements MiniGame {
 
   // Database-specific methods
   bool get useDatabase => _useDatabase;
-  
+
   String? get currentLevelId => _currentLevelId;
-  
+
   List<Challenge>? get currentChallenges => _currentChallenges;
 
   // Save progress to database
-  Future<bool> saveProgress(String userId, int score, bool completed, {int? timeSeconds, int attempts = 1}) async {
+  Future<bool> saveProgress(String userId, int score, bool completed,
+      {int? timeSeconds, int attempts = 1}) async {
     if (!_useDatabase || _gameDataService == null || _currentLevelId == null) {
       return false;
     }
@@ -305,7 +320,7 @@ class FactorizationGame implements MiniGame {
   static Map<String, dynamic> getLevelInfo(int level) {
     final numbers = _levelNumbers[level];
     if (numbers == null) return {};
-    
+
     return {
       'level': level,
       'difficulty': _getDifficultyName(level),
@@ -316,24 +331,36 @@ class FactorizationGame implements MiniGame {
 
   static String _getDifficultyName(int level) {
     switch (level) {
-      case 1: return 'Easy';
-      case 2: return 'Medium';
-      case 3: return 'Hard';
-      case 4: return 'Expert';
-      case 5: return 'Master';
-      default: return 'Unknown';
+      case 1:
+        return 'Easy';
+      case 2:
+        return 'Medium';
+      case 3:
+        return 'Hard';
+      case 4:
+        return 'Expert';
+      case 5:
+        return 'Master';
+      default:
+        return 'Unknown';
     }
   }
 
   // Get level description
   static String getLevelDescription(int level) {
     switch (level) {
-      case 1: return 'Small numbers with few factors to get started.';
-      case 2: return 'Larger numbers with more factors to find.';
-      case 3: return 'Prime numbers and perfect squares.';
-      case 4: return 'Complex numbers with many factors.';
-      case 5: return 'Large numbers and challenging factorizations.';
-      default: return 'Unknown level.';
+      case 1:
+        return 'Small numbers with few factors to get started.';
+      case 2:
+        return 'Larger numbers with more factors to find.';
+      case 3:
+        return 'Prime numbers and perfect squares.';
+      case 4:
+        return 'Complex numbers with many factors.';
+      case 5:
+        return 'Large numbers and challenging factorizations.';
+      default:
+        return 'Unknown level.';
     }
   }
 
@@ -363,4 +390,4 @@ class FactorizationGame implements MiniGame {
     }
     return factors;
   }
-} 
+}

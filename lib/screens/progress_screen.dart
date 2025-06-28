@@ -58,26 +58,45 @@ class _ProgressScreenState extends State<ProgressScreen> {
               loc.progress,
               style: useDyslexiaFont
                   ? GoogleFonts.lexend(fontSize: fontSizeProvider.fontSize + 4)
-                  : Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: fontSizeProvider.fontSize + 4),
+                  : Theme.of(context)
+                      .textTheme
+                      .headlineMedium
+                      ?.copyWith(fontSize: fontSizeProvider.fontSize + 4),
             ),
             const SizedBox(height: 24),
-            
+
             // Overall Statistics
             _buildStatCard(
               'Overall Statistics',
               [
-                _buildStatRow('Games Played', '${_stats['totalGamesPlayed'] ?? 0}', useDyslexiaFont, fontSizeProvider),
-                _buildStatRow('Total Questions', '${_stats['totalAnswers'] ?? 0}', useDyslexiaFont, fontSizeProvider),
-                _buildStatRow('Correct Answers', '${_stats['correctAnswers'] ?? 0}', useDyslexiaFont, fontSizeProvider),
-                _buildStatRow('Accuracy', '${((_stats['totalAnswers'] ?? 0) == 0 ? 0.0 : ((_stats['correctAnswers'] ?? 0) / (_stats['totalAnswers'] ?? 1)) * 100).toStringAsFixed(1)}%', useDyslexiaFont, fontSizeProvider),
+                _buildStatRow(
+                    'Games Played',
+                    '${_stats['totalGamesPlayed'] ?? 0}',
+                    useDyslexiaFont,
+                    fontSizeProvider),
+                _buildStatRow(
+                    'Total Questions',
+                    '${_stats['totalAnswers'] ?? 0}',
+                    useDyslexiaFont,
+                    fontSizeProvider),
+                _buildStatRow(
+                    'Correct Answers',
+                    '${_stats['correctAnswers'] ?? 0}',
+                    useDyslexiaFont,
+                    fontSizeProvider),
+                _buildStatRow(
+                    'Accuracy',
+                    '${((_stats['totalAnswers'] ?? 0) == 0 ? 0.0 : ((_stats['correctAnswers'] ?? 0) / (_stats['totalAnswers'] ?? 1)) * 100).toStringAsFixed(1)}%',
+                    useDyslexiaFont,
+                    fontSizeProvider),
               ],
               Colors.blue,
               useDyslexiaFont,
               fontSizeProvider,
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Game-specific Progress
             Row(
               children: [
@@ -85,7 +104,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   child: _buildStatCard(
                     'Sequences',
                     [
-                      _buildStatRow('Completed', '${_stats['sequencesCompleted'] ?? 0}', useDyslexiaFont, fontSizeProvider),
+                      _buildStatRow(
+                          'Completed',
+                          '${_stats['sequencesCompleted'] ?? 0}',
+                          useDyslexiaFont,
+                          fontSizeProvider),
                     ],
                     Colors.green,
                     useDyslexiaFont,
@@ -97,7 +120,11 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   child: _buildStatCard(
                     'Equations',
                     [
-                      _buildStatRow('Completed', '${_stats['equationsCompleted'] ?? 0}', useDyslexiaFont, fontSizeProvider),
+                      _buildStatRow(
+                          'Completed',
+                          '${_stats['equationsCompleted'] ?? 0}',
+                          useDyslexiaFont,
+                          fontSizeProvider),
                     ],
                     Colors.orange,
                     useDyslexiaFont,
@@ -106,36 +133,42 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Streaks
             _buildStatCard(
               'Streaks',
               [
-                _buildStatRow('Current Streak', '${_stats['currentStreak'] ?? 0}', useDyslexiaFont, fontSizeProvider),
-                _buildStatRow('Best Streak', '${_stats['bestStreak'] ?? 0}', useDyslexiaFont, fontSizeProvider),
+                _buildStatRow(
+                    'Current Streak',
+                    '${_stats['currentStreak'] ?? 0}',
+                    useDyslexiaFont,
+                    fontSizeProvider),
+                _buildStatRow('Best Streak', '${_stats['bestStreak'] ?? 0}',
+                    useDyslexiaFont, fontSizeProvider),
               ],
               Colors.purple,
               useDyslexiaFont,
               fontSizeProvider,
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Last Played
             _buildStatCard(
               'Recent Activity',
               [
-                _buildStatRow('Last Played', _stats['lastPlayed'] ?? '-', useDyslexiaFont, fontSizeProvider),
+                _buildStatRow('Last Played', _stats['lastPlayed'] ?? '-',
+                    useDyslexiaFont, fontSizeProvider),
               ],
               Colors.teal,
               useDyslexiaFont,
               fontSizeProvider,
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Analytics section
             Card(
               elevation: 2,
@@ -147,16 +180,21 @@ class _ProgressScreenState extends State<ProgressScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Recent Activity', style: TextStyle(fontWeight: FontWeight.bold)),
+                        Text('Recent Activity',
+                            style: TextStyle(fontWeight: FontWeight.bold)),
                         Row(
                           children: [
                             IconButton(
                               icon: Icon(Icons.download),
                               tooltip: 'Export CSV',
                               onPressed: () async {
-                                final csv = await AnalyticsService.exportAsCSV();
+                                final csv =
+                                    await AnalyticsService.exportAsCSV();
                                 // TODO: Implement file save/share
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('CSV exported (see logs)')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('CSV exported (see logs)')));
                                 print(csv);
                               },
                             ),
@@ -164,9 +202,13 @@ class _ProgressScreenState extends State<ProgressScreen> {
                               icon: Icon(Icons.code),
                               tooltip: 'Export JSON',
                               onPressed: () async {
-                                final json = await AnalyticsService.exportAsJSON();
+                                final json =
+                                    await AnalyticsService.exportAsJSON();
                                 // TODO: Implement file save/share
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('JSON exported (see logs)')));
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                        content:
+                                            Text('JSON exported (see logs)')));
                                 print(json);
                               },
                             ),
@@ -183,7 +225,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                                       dense: true,
                                       leading: Icon(Icons.event_note),
                                       title: Text('${e['type']}'),
-                                      subtitle: Text('${e['timestamp']}\n${e['details'] ?? ''}'),
+                                      subtitle: Text(
+                                          '${e['timestamp']}\n${e['details'] ?? ''}'),
                                     ))
                                 .toList(),
                           ),
@@ -191,7 +234,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 ),
               ),
             ),
-            
+
             // Achievements
             _buildAchievementsSection(fontSizeProvider),
           ],
@@ -200,7 +243,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
     );
   }
 
-  Widget _buildStatCard(String title, List<Widget> children, Color color, bool useDyslexiaFont, FontSizeProvider fontSizeProvider) {
+  Widget _buildStatCard(String title, List<Widget> children, Color color,
+      bool useDyslexiaFont, FontSizeProvider fontSizeProvider) {
     return Card(
       elevation: 4,
       child: Padding(
@@ -211,8 +255,14 @@ class _ProgressScreenState extends State<ProgressScreen> {
             Text(
               title,
               style: useDyslexiaFont
-                  ? GoogleFonts.lexend(fontSize: fontSizeProvider.fontSize + 2, fontWeight: FontWeight.bold, color: color)
-                  : TextStyle(fontSize: fontSizeProvider.fontSize + 2, fontWeight: FontWeight.bold, color: color),
+                  ? GoogleFonts.lexend(
+                      fontSize: fontSizeProvider.fontSize + 2,
+                      fontWeight: FontWeight.bold,
+                      color: color)
+                  : TextStyle(
+                      fontSize: fontSizeProvider.fontSize + 2,
+                      fontWeight: FontWeight.bold,
+                      color: color),
             ),
             const SizedBox(height: 12),
             ...children,
@@ -222,7 +272,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
     );
   }
 
-  Widget _buildStatRow(String label, String value, bool useDyslexiaFont, FontSizeProvider fontSizeProvider) {
+  Widget _buildStatRow(String label, String value, bool useDyslexiaFont,
+      FontSizeProvider fontSizeProvider) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -230,11 +281,15 @@ class _ProgressScreenState extends State<ProgressScreen> {
         children: [
           Text(
             label,
-            style: useDyslexiaFont ? GoogleFonts.lexend(fontSize: 16) : const TextStyle(fontSize: 16),
+            style: useDyslexiaFont
+                ? GoogleFonts.lexend(fontSize: 16)
+                : const TextStyle(fontSize: 16),
           ),
           Text(
             value,
-            style: useDyslexiaFont ? GoogleFonts.lexend(fontSize: 16, fontWeight: FontWeight.bold) : const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: useDyslexiaFont
+                ? GoogleFonts.lexend(fontSize: 16, fontWeight: FontWeight.bold)
+                : const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -243,7 +298,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
 
   Widget _buildAchievementsSection(FontSizeProvider fontSizeProvider) {
     final achievements = _getAchievements();
-    
+
     return Card(
       elevation: 4,
       child: Padding(
@@ -266,7 +321,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
               ],
             ),
             const SizedBox(height: 12),
-            ...achievements.map((achievement) => _buildAchievementTile(achievement, fontSizeProvider)),
+            ...achievements.map((achievement) =>
+                _buildAchievementTile(achievement, fontSizeProvider)),
           ],
         ),
       ),
@@ -286,7 +342,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
         'title': 'Accuracy Master',
         'description': 'Achieve 90% accuracy',
         'icon': Icons.track_changes,
-        'unlocked': (((_stats['totalAnswers'] ?? 0) == 0 ? 0.0 : ((_stats['correctAnswers'] ?? 0) / (_stats['totalAnswers'] ?? 1)) * 100) >= 90),
+        'unlocked': (((_stats['totalAnswers'] ?? 0) == 0
+                ? 0.0
+                : ((_stats['correctAnswers'] ?? 0) /
+                        (_stats['totalAnswers'] ?? 1)) *
+                    100) >=
+            90),
         'color': Colors.blue,
       },
       {
@@ -306,7 +367,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
     ];
   }
 
-  Widget _buildAchievementTile(Map<String, dynamic> achievement, FontSizeProvider fontSizeProvider) {
+  Widget _buildAchievementTile(
+      Map<String, dynamic> achievement, FontSizeProvider fontSizeProvider) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -333,7 +395,8 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   achievement['description'],
                   style: TextStyle(
                     fontSize: fontSizeProvider.fontSize - 4,
-                    color: achievement['unlocked'] ? Colors.black54 : Colors.grey,
+                    color:
+                        achievement['unlocked'] ? Colors.black54 : Colors.grey,
                   ),
                 ),
               ],
@@ -347,4 +410,4 @@ class _ProgressScreenState extends State<ProgressScreen> {
       ),
     );
   }
-} 
+}

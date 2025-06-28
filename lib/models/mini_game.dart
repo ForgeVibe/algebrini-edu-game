@@ -12,4 +12,4 @@ class MiniGame {
     required this.description,
     required this.levels,
   });
-} 
+}

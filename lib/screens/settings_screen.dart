@@ -24,7 +24,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _hintsEnabled = true;
   bool _ttsEnabled = true;
 
-  bool get useDyslexiaFont => Provider.of<FontSizeProvider>(context, listen: false).dyslexiaFont;
+  bool get useDyslexiaFont =>
+      Provider.of<FontSizeProvider>(context, listen: false).dyslexiaFont;
 
   @override
   void initState() {
@@ -55,7 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     await prefs.setBool('tutorialEnabled', _tutorialEnabled);
     await prefs.setBool('hintsEnabled', _hintsEnabled);
     await prefs.setBool('ttsEnabled', _ttsEnabled);
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Settings saved!')),
     );
@@ -83,7 +84,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   : Theme.of(context).textTheme.headlineMedium,
             ),
             const SizedBox(height: 24),
-            
+
             // Language Settings
             _buildSettingsCard(
               'Language & Localization',
@@ -103,9 +104,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Game Settings
             _buildSettingsCard(
               'Game Settings',
@@ -134,9 +135,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Audio Settings
             _buildSettingsCard(
               'Audio Settings',
@@ -155,9 +156,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Accessibility Settings
             _buildSettingsCard(
               'Accessibility',
@@ -187,8 +188,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Font Size', style: TextStyle(fontSize: 16)),
-                          Text(fontSizeProvider.fontSize.toStringAsFixed(0), style: const TextStyle(fontSize: 16)),
+                          const Text('Font Size',
+                              style: TextStyle(fontSize: 16)),
+                          Text(fontSizeProvider.fontSize.toStringAsFixed(0),
+                              style: const TextStyle(fontSize: 16)),
                         ],
                       ),
                       Slider(
@@ -213,9 +216,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Data Management
             _buildSettingsCard(
               'Data Management',
@@ -236,9 +239,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 24),
-            
+
             // Save Button
             SizedBox(
               width: double.infinity,
@@ -255,9 +258,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // About Section
             _buildAboutSection(),
           ],
@@ -266,7 +269,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSettingsCard(String title, IconData icon, Color color, List<Widget> children) {
+  Widget _buildSettingsCard(
+      String title, IconData icon, Color color, List<Widget> children) {
     return Card(
       elevation: 4,
       child: Padding(
@@ -281,8 +285,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 Text(
                   title,
                   style: useDyslexiaFont
-                      ? GoogleFonts.lexend(fontSize: 18, fontWeight: FontWeight.bold, color: color)
-                      : TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+                      ? GoogleFonts.lexend(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: color)
+                      : TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: color),
                 ),
               ],
             ),
@@ -294,20 +304,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildDropdownSetting(String label, String value, Map<String, String> options, Function(String?) onChanged) {
+  Widget _buildDropdownSetting(String label, String value,
+      Map<String, String> options, Function(String?) onChanged) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: useDyslexiaFont ? GoogleFonts.lexend(fontSize: 16) : const TextStyle(fontSize: 16)),
+          Text(label,
+              style: useDyslexiaFont
+                  ? GoogleFonts.lexend(fontSize: 16)
+                  : const TextStyle(fontSize: 16)),
           DropdownButton<String>(
             value: value,
             onChanged: onChanged,
             items: options.entries.map((entry) {
               return DropdownMenuItem<String>(
                 value: entry.key,
-                child: Text(entry.value, style: useDyslexiaFont ? GoogleFonts.lexend(fontSize: 16) : null),
+                child: Text(entry.value,
+                    style: useDyslexiaFont
+                        ? GoogleFonts.lexend(fontSize: 16)
+                        : null),
               );
             }).toList(),
           ),
@@ -316,13 +333,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildSwitchSetting(String label, bool value, Function(bool) onChanged) {
+  Widget _buildSwitchSetting(
+      String label, bool value, Function(bool) onChanged) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: useDyslexiaFont ? GoogleFonts.lexend(fontSize: 16) : const TextStyle(fontSize: 16)),
+          Text(label,
+              style: useDyslexiaFont
+                  ? GoogleFonts.lexend(fontSize: 16)
+                  : const TextStyle(fontSize: 16)),
           Switch(
             value: value,
             onChanged: onChanged,
@@ -333,7 +354,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildButtonSetting(String label, String description, IconData icon, VoidCallback onPressed) {
+  Widget _buildButtonSetting(
+      String label, String description, IconData icon, VoidCallback onPressed) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: InkWell(
@@ -351,7 +373,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     Text(
                       label,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style: const TextStyle(
+                          fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                     Text(
                       description,
@@ -445,4 +468,4 @@ class _SettingsScreenState extends State<SettingsScreen> {
       const SnackBar(content: Text('Export functionality coming soon!')),
     );
   }
-} 
+}

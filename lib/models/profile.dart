@@ -13,4 +13,4 @@ class Profile {
         username: json['username'] as String,
         avatarIndex: json['avatarIndex'] as int,
       );
-} 
+}

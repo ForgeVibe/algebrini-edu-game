@@ -20,4 +20,4 @@ class Progress {
         scores: Map<String, int>.from(json['scores'] ?? {}),
         achievements: List<String>.from(json['achievements'] ?? []),
       );
-} 
+}

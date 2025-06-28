@@ -29,15 +29,15 @@ class _GameScreenState extends State<GameScreen> {
 
   Future<void> _checkAnswer() async {
     final isCorrect = widget.game.checkAnswer(_controller.text);
-    
+
     // Record the answer using the service
     await GameStatsService.recordAnswer(isCorrect, widget.game.id);
-    
+
     setState(() {
       _isCorrect = isCorrect;
       _feedback = isCorrect ? 'Correct!' : 'Try again!';
     });
-    
+
     if (isCorrect) {
       Future.delayed(const Duration(seconds: 1), () {
         setState(() {
@@ -98,7 +98,9 @@ class _GameScreenState extends State<GameScreen> {
             if (_feedback.isNotEmpty)
               Text(
                 _feedback,
-                style: TextStyle(color: _isCorrect ? Colors.green : Colors.red, fontSize: 18),
+                style: TextStyle(
+                    color: _isCorrect ? Colors.green : Colors.red,
+                    fontSize: 18),
                 textAlign: TextAlign.center,
               ),
             const SizedBox(height: 16),
@@ -120,4 +122,4 @@ class _GameScreenState extends State<GameScreen> {
       ),
     );
   }
-} 
+}

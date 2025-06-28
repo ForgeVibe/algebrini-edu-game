@@ -45,7 +45,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     await prefs.setString('username', _usernameController.text);
     await prefs.setInt('avatarIndex', _selectedAvatar);
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(AppLocalizations.of(context)!.profile + ' saved!')),
+      SnackBar(
+          content: Text(AppLocalizations.of(context)!.profile + ' saved!')),
     );
   }
 
@@ -62,11 +63,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            loc.profile,
-            style: useDyslexiaFont
-                ? GoogleFonts.lexend(fontSize: fontSizeProvider.fontSize + 4)
-                : Theme.of(context).textTheme.headlineMedium?.copyWith(fontSize: fontSizeProvider.fontSize + 4)),
+          Text(loc.profile,
+              style: useDyslexiaFont
+                  ? GoogleFonts.lexend(fontSize: fontSizeProvider.fontSize + 4)
+                  : Theme.of(context)
+                      .textTheme
+                      .headlineMedium
+                      ?.copyWith(fontSize: fontSizeProvider.fontSize + 4)),
           const SizedBox(height: 24),
           Card(
             elevation: 2,
@@ -79,15 +82,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     children: [
                       Icon(Icons.monetization_on, color: Colors.amber.shade700),
                       const SizedBox(width: 4),
-                      Text('$_coins', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber.shade700)),
+                      Text('$_coins',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.amber.shade700)),
                       const SizedBox(width: 16),
                       Icon(Icons.star, color: Colors.yellow.shade700),
                       const SizedBox(width: 4),
-                      Text('$_stars', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.yellow.shade700)),
+                      Text('$_stars',
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.yellow.shade700)),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Text('Badges:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text('Badges:',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
                   Wrap(
                     spacing: 8,
                     children: _badges.isEmpty
@@ -120,10 +130,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: _saveProfile,
-            child: Text('Save', style: TextStyle(fontSize: fontSizeProvider.fontSize)),
+            child: Text('Save',
+                style: TextStyle(fontSize: fontSizeProvider.fontSize)),
           ),
         ],
       ),
     );
   }
-} 
+}

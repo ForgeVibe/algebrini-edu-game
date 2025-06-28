@@ -4,6 +4,15 @@ version: '3'
 # Organized by categories with prefixes for better navigation.
 # This version has been corrected for proper directory handling and dependency management.
 
+vars:
+  IMAGE_NAME: algebrini-flutter
+  FLUTTER_VERSION: '3.19.6'
+  FLUTTER_TAR: 'flutter_linux_{{.FLUTTER_VERSION}}-stable.tar.xz'
+  FLUTTER_URL: 'https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/{{.FLUTTER_TAR}}'
+  DOCKER_CONTEXT: '.'
+  DOWNLOADS_DIR: './infra/downloads'
+  CONTAINER_NAME: algebrini-dev
+
 tasks:
   default:
     cmds:
@@ -14,16 +23,84 @@ tasks:
     desc: Check development environment status
     cmds:
       - |
-        echo '=== Environment Status ==='
-        echo "Flutter SDK:     $(which flutter 2>/dev/null || echo 'Not found')"
-        echo "Dart SDK:        $(which dart 2>/dev/null || echo 'Not found')"
-        echo "Docker:          $(which docker 2>/dev/null || echo 'Not found')"
-        echo "Docker Compose:  $(which docker-compose 2>/dev/null || echo 'Not found')"
-        echo "Node.js:         $(which node 2>/dev/null || echo 'Not found')"
-        echo "npm:             $(which npm 2>/dev/null || echo 'Not found')"
+        echo '=== Algebrini Development Environment Status ==='
         echo ''
-        echo '=== Database Status ==='
-      - task: db:status
+        echo '=== Docker Images ==='
+        echo "Development:  $(docker image inspect {{.IMAGE_NAME}}:development >/dev/null 2>&1 && echo '✓ Built' || echo '✗ Not built')"
+        echo "Testing:      $(docker image inspect {{.IMAGE_NAME}}:testing >/dev/null 2>&1 && echo '✓ Built' || echo '✗ Not built')"
+        echo "Web Build:    $(docker image inspect {{.IMAGE_NAME}}:web-build >/dev/null 2>&1 && echo '✓ Built' || echo '✗ Not built')"
+        echo "Production:   $(docker image inspect {{.IMAGE_NAME}}:production >/dev/null 2>&1 && echo '✓ Built' || echo '✗ Not built')"
+        echo ''
+        echo '=== Running Containers ==='
+        docker ps --filter "ancestor={{.IMAGE_NAME}}:development" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || echo "No development containers running"
+        echo ''
+        echo '=== Database Stack ==='
+        cd infra/database/dev && docker compose ps 2>/dev/null || echo "Database stack not running"
+        echo ''
+        echo '=== API Server ==='
+        curl -s http://localhost:3000/api/health >/dev/null && echo "✓ API server running" || echo "✗ API server not responding"
+        echo ''
+        echo '=== Available Services ==='
+        echo "Development Server: http://localhost:5052"
+        echo "Production Server:  http://localhost:5053"
+        echo "API Server:         http://localhost:3000"
+        echo "Database:           localhost:5432"
+        echo "pgAdmin:            http://localhost:8081"
+
+  # ===== DOCKER HELPERS =====
+  docker:check-dev:
+    desc: Check if development Docker image exists (build if not)
+    cmds:
+      - docker image inspect {{.IMAGE_NAME}}:development >/dev/null 2>&1 || task docker:build-dev
+
+  docker:build-dev:
+    desc: Build development Docker image (if not exists)
+    deps: [download-flutter]
+    cmds:
+      - docker image inspect {{.IMAGE_NAME}}:development >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target development -t {{.IMAGE_NAME}}:development -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
+
+  docker:build-test:
+    desc: Build testing Docker image (if not exists)
+    deps: [download-flutter]
+    cmds:
+      - docker image inspect {{.IMAGE_NAME}}:testing >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target testing -t {{.IMAGE_NAME}}:testing -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
+
+  docker:build-web:
+    desc: Build web Docker image (if not exists)
+    deps: [download-flutter]
+    cmds:
+      - docker image inspect {{.IMAGE_NAME}}:web-build >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target web-build -t {{.IMAGE_NAME}}:web-build -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
+
+  docker:build-android:
+    desc: Build Android Docker image (if not exists)
+    deps: [download-flutter]
+    cmds:
+      - docker image inspect {{.IMAGE_NAME}}:android-build >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target android-build -t {{.IMAGE_NAME}}:android-build -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
+
+  docker:build-ios:
+    desc: Build iOS Docker image (if not exists)
+    deps: [download-flutter]
+    cmds:
+      - docker image inspect {{.IMAGE_NAME}}:ios-build >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target ios-build -t {{.IMAGE_NAME}}:ios-build -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
+
+  docker:build-prod:
+    desc: Build production Docker image (if not exists)
+    deps: [download-flutter]
+    cmds:
+      - docker image inspect {{.IMAGE_NAME}}:production >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target production -t {{.IMAGE_NAME}}:production -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
+
+  download-flutter:
+    desc: Download Flutter SDK if not present
+    cmds:
+      - |
+        if [ ! -f "{{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}" ]; then
+          echo "Downloading Flutter SDK..."
+          mkdir -p {{.DOWNLOADS_DIR}}
+          wget -O "{{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}" "{{.FLUTTER_URL}}"
+          echo "Flutter SDK downloaded"
+        else
+          echo "Flutter SDK already present"
+        fi
 
   # ===== DATABASE MANAGEMENT =====
   # Note: All 'db:*' tasks that use docker-compose now use the 'dir' property.
@@ -140,20 +217,21 @@ tasks:
   # ===== TESTING =====
   test:unit:
     desc: Run unit tests
+    deps: [docker:build-test]
     cmds:
-      - flutter test
+      - docker run --rm {{.IMAGE_NAME}}:testing
 
   test:integration:
     desc: Run integration tests
+    deps: [docker:build-test]
     cmds:
-      - flutter test integration_test/
+      - docker run --rm {{.IMAGE_NAME}}:testing
 
   test:coverage:
     desc: Generate test coverage report
-    deps: [test:unit] # Ensure tests are run before generating coverage
+    deps: [docker:build-test] # Ensure tests are run before generating coverage
     cmds:
-      - flutter test --coverage
-      - genhtml coverage/lcov.info -o coverage/html
+      - docker run --rm -v $(pwd)/coverage:/home/flutteruser/app/coverage {{.IMAGE_NAME}}:testing
       - "echo 'Coverage report generated at coverage/html/index.html'"
 
   test:database:
@@ -167,68 +245,226 @@ tasks:
   # ===== BUILD & DEPLOY =====
   build:android:
     desc: Build Android APK
+    deps: [docker:build-android]
     cmds:
-      - flutter build apk --release
-      - "echo 'APK built at build/app/outputs/flutter-apk/app-release.apk'"
+      - "echo 'APK built in Docker container'"
 
   build:ios:
     desc: Build iOS app (requires macOS)
+    deps: [docker:build-ios]
     cmds:
-      - flutter build ios --release
-      - "echo 'iOS app built'"
+      - "echo 'iOS app built in Docker container'"
 
   build:web:
     desc: Build web app
+    deps: [docker:build-web]
     cmds:
-      - flutter build web --release
-      - "echo 'Web app built at build/web/'"
+      - "echo 'Web app built in Docker container'"
 
   build:all:
     desc: Build for all platforms
     deps: [build:android, build:web]
 
+  # ===== COMPREHENSIVE TESTING =====
+  test:smoke:
+    desc: Run smoke tests (basic functionality)
+    deps: [docker:build-test]
+    cmds:
+      - |
+        echo "Running smoke tests..."
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/smoke_test.dart
+
+  test:regression:
+    desc: Run regression tests
+    deps: [docker:build-test]
+    cmds:
+      - |
+        echo "Running regression tests..."
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/regression_test.dart
+
+  test:performance:
+    desc: Run performance tests
+    deps: [docker:build-test]
+    cmds:
+      - |
+        echo "Running performance tests..."
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/ --coverage --reporter=json --dart-define=performance_test=true
+
+  test:accessibility:
+    desc: Run accessibility tests
+    deps: [docker:build-test]
+    cmds:
+      - |
+        echo "Running accessibility tests..."
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/ --dart-define=accessibility_test=true
+
+  test:responsive:
+    desc: Run responsive design tests
+    deps: [docker:build-test]
+    cmds:
+      - |
+        echo "Running responsive design tests..."
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/web_test.dart --dart-define=responsive_test=true
+
+  test:mobile:
+    desc: Run mobile-specific tests
+    deps: [docker:build-test]
+    cmds:
+      - |
+        echo "Running mobile-specific tests..."
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/app_test.dart --dart-define=mobile_test=true
+
+  test:web:
+    desc: Run web-specific tests
+    deps: [docker:build-test]
+    cmds:
+      - |
+        echo "Running web-specific tests..."
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/web_test.dart --dart-define=web_test=true
+
+  test:nightly:
+    desc: Run nightly test suite (comprehensive)
+    deps: [docker:build-test]
+    cmds:
+      - |
+        echo "Running nightly test suite..."
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/ --coverage
+        echo "Nightly test suite completed"
+
+  test:weekly:
+    desc: Run weekly test suite (extended)
+    deps: [docker:build-test]
+    cmds:
+      - |
+        echo "Running weekly test suite..."
+        task: test:nightly
+        task: test:performance
+        echo "Weekly test suite completed"
+
+  test:monthly:
+    desc: Run monthly test suite (full regression)
+    deps: [docker:build-test]
+    cmds:
+      - |
+        echo "Running monthly test suite..."
+        task: test:weekly
+        task: test:regression
+        echo "Monthly test suite completed"
+
   # ===== CODE QUALITY =====
   code:format:
     desc: Format Dart code
+    deps: [docker:check-dev]
     cmds:
-      - dart format lib/ test/ integration_test/
+      - docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development dart format lib/ test/ integration_test/
 
   code:analyze:
     desc: Analyze Dart code
+    deps: [docker:check-dev]
     cmds:
-      - flutter analyze
+      - docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development flutter analyze
 
   code:lint:
     desc: Run linting
+    deps: [docker:check-dev]
     cmds:
-      - flutter analyze --fatal-infos
+      - docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development flutter analyze --fatal-infos
 
   code:fix:
     desc: Format and analyze code
     deps: [code:format, code:analyze]
 
-  # ===== DEVELOPMENT WORKFLOW =====
-  # Note: Using 'deps' to manage dependencies is cleaner and more reliable.
+  # ===== DEVELOPMENT ENVIRONMENT =====
   dev:setup:
-    desc: Complete development setup
-    deps: [db:start, api:install, api:start]
+    desc: Complete development environment setup
     cmds:
-      - echo "Development environment ready!"
+      - task: db:start
+      - task: api:install
+      - task: api:start
+      - echo "Development environment setup complete"
 
   dev:start:
-    desc: Start development environment
-    deps: [db:start, api:start]
+    desc: Start development server (background)
+    deps: [docker:check-dev]
+    cmds:
+      - |
+        echo "Starting Algebrini development server..."
+        docker run -d --name {{.CONTAINER_NAME}} -p 5052:5000 -p 5053:8080 {{.IMAGE_NAME}}:development
+        echo "Development server started in background"
+        echo "Access at: http://localhost:5052"
+
+  dev:start-fg:
+    desc: Start development server (foreground with hot reload)
+    deps: [docker:check-dev]
+    cmds:
+      - |
+        echo "Starting Algebrini development server (foreground)..."
+        docker run --rm -p 5052:5000 -p 5053:8080 {{.IMAGE_NAME}}:development
 
   dev:stop:
-    desc: Stop development environment
-    # Run in parallel for faster shutdown
+    desc: Stop development server
     cmds:
-      - task: db:stop
-      - task: api:stop
+      - |
+        echo "Stopping development server..."
+        docker stop {{.CONTAINER_NAME}} 2>/dev/null || echo "No running development container found"
+        docker rm {{.CONTAINER_NAME}} 2>/dev/null || echo "No development container to remove"
+
+  dev:restart:
+    desc: Restart development server
+    cmds:
+      - task: dev:stop
+      - task: dev:start
 
   dev:reset:
-    desc: Reset development environment
-    deps: [dev:stop, dev:setup]
+    desc: Reset development environment (stop all, clean, restart)
+    cmds:
+      - task: dev:stop
+      - task: stop-all
+      - task: clean
+      - task: dev:setup
+      - task: dev:start
+
+  dev:logs:
+    desc: View development server logs
+    cmds:
+      - docker logs -f {{.CONTAINER_NAME}}
+
+  # ===== LEGACY ALIASES (for backward compatibility) =====
+  dev:
+    desc: Start development server (alias for dev:start)
+    deps: [dev:start]
+
+  dev-fg:
+    desc: Start development server foreground (alias for dev:start-fg)
+    deps: [dev:start-fg]
+
+  test:
+    desc: Run all tests with coverage
+    deps: [docker:build-test]
+    cmds:
+      - |
+        echo "Running all tests..."
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/
+        echo "Running integration tests..."
+        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/
+
+  serve-web:
+    desc: Serve production web app with nginx
+    deps: [docker:build-prod]
+    cmds:
+      - |
+        echo "Starting production web server..."
+        docker run --rm -p 80:80 {{.IMAGE_NAME}}:production
+
+  stop-all:
+    desc: Stop all Algebrini containers
+    cmds:
+      - |
+        echo "Stopping all Algebrini containers..."
+        docker ps -q --filter "ancestor={{.IMAGE_NAME}}:development" | xargs -r docker stop
+        docker ps -aq --filter "ancestor={{.IMAGE_NAME}}:development" | xargs -r docker rm
 
   # ===== CI/CD =====
   ci:test:
@@ -245,26 +481,63 @@ tasks:
   clean:
     desc: Clean build artifacts and temporary files
     cmds:
-      - flutter clean
-      - rm -rf build/
-      - rm -rf coverage/
-      - rm -f api/.api.pid api/api.log
-      - echo "Build artifacts and temporary files cleaned."
+      - |
+        echo "Cleaning up Docker resources..."
+        task stop-all
+        docker system prune -f
+        docker rmi {{.IMAGE_NAME}}:development {{.IMAGE_NAME}}:testing {{.IMAGE_NAME}}:web-build {{.IMAGE_NAME}}:android-build {{.IMAGE_NAME}}:ios-build {{.IMAGE_NAME}}:production 2>/dev/null || true
+        rm -rf build/
+        rm -rf coverage/
+        rm -f api/.api.pid api/api.log
+        echo "Build artifacts and temporary files cleaned."
+
+  clean-all:
+    desc: Clean everything including Flutter SDK
+    cmds:
+      - |
+        task clean
+        rm -f {{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}
+        echo "Complete cleanup finished"
+
+  status:
+    desc: Show development environment status
+    cmds:
+      - |
+        echo "Algebrini Development Environment Status"
+        echo "========================================"
+        echo "Docker containers:"
+        docker ps --filter "ancestor={{.IMAGE_NAME}}:development" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+        echo ""
+        echo "Available ports:"
+        echo "  Development: http://localhost:5052"
+        echo "  Production:  http://localhost:5053"
+        echo ""
+        echo "Useful commands:"
+        echo "  task dev:start     - Start development server (background)"
+        echo "  task dev:start-fg  - Start development server (foreground)"
+        echo "  task dev:logs      - View development server logs"
+        echo "  task dev:stop      - Stop development server"
+        echo "  task dev:restart   - Restart development server"
+        echo "  task dev:setup     - Setup complete environment"
+        echo "  task status        - Show environment status"
 
   deps:get:
     desc: Get Flutter dependencies
+    deps: [docker:check-dev]
     cmds:
-      - flutter pub get
+      - docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development flutter pub get
 
   deps:upgrade:
     desc: Upgrade Flutter dependencies
+    deps: [docker:check-dev]
     cmds:
-      - flutter pub upgrade
+      - docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development flutter pub upgrade
 
   deps:outdated:
     desc: Check for outdated dependencies
+    deps: [docker:check-dev]
     cmds:
-      - flutter pub outdated
+      - docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development flutter pub outdated
 
   # ===== HELP =====
   help:
@@ -272,16 +545,83 @@ tasks:
     silent: true
     cmds:
       - |
-        echo "Available task categories:"
-        echo "  env:* - Environment and setup tasks"
-        echo "  db:* - Database management tasks"
-        echo "  api:* - API server tasks"
-        echo "  test:* - Testing tasks"
-        echo "  build:* - Build and deployment tasks"
-        echo "  code:* - Code quality tasks"
-        echo "  deps:* - Dependency management tasks"
-        echo "  dev:* - Development workflow tasks"
-        echo "  ci:* - CI/CD tasks"
+        echo "Algebrini Educational Game - Task Commands"
+        echo "=========================================="
         echo ""
-        echo "Use 'task --list-all' to see all available tasks."
-        echo "Use 'task <task-name>' to run a specific task."
+        echo "Development Commands:"
+        echo "  task dev:setup     - Complete development environment setup"
+        echo "  task dev:start     - Start development server (background)"
+        echo "  task dev:start-fg  - Start development server (foreground)"
+        echo "  task dev:stop      - Stop development server"
+        echo "  task dev:restart   - Restart development server"
+        echo "  task dev:reset     - Reset development environment"
+        echo "  task dev:logs      - View development server logs"
+        echo "  task status        - Show environment status"
+        echo ""
+        echo "Legacy Aliases:"
+        echo "  task dev           - Alias for dev:start"
+        echo "  task dev-fg        - Alias for dev:start-fg"
+        echo ""
+        echo "Build Commands:"
+        echo "  task build:web     - Build web app for production"
+        echo "  task build:android - Build Android APK"
+        echo "  task build:ios     - Build iOS app"
+        echo ""
+        echo "Testing Commands:"
+        echo "  task test          - Run all tests"
+        echo "  task test:unit     - Run unit tests"
+        echo "  task test:integration - Run integration tests"
+        echo "  task test:coverage - Run tests with coverage"
+        echo "  task test:smoke    - Run smoke tests"
+        echo "  task test:regression - Run regression tests"
+        echo "  task test:performance - Run performance tests"
+        echo "  task test:accessibility - Run accessibility tests"
+        echo "  task test:responsive - Run responsive design tests"
+        echo "  task test:mobile   - Run mobile-specific tests"
+        echo "  task test:web      - Run web-specific tests"
+        echo "  task test:nightly  - Run nightly test suite"
+        echo "  task test:weekly   - Run weekly test suite"
+        echo "  task test:monthly  - Run monthly test suite"
+        echo ""
+        echo "Code Quality:"
+        echo "  task code:format   - Format Dart code"
+        echo "  task code:analyze  - Analyze Dart code"
+        echo "  task code:lint     - Run linting"
+        echo "  task code:fix      - Format and analyze code"
+        echo ""
+        echo "Database Management:"
+        echo "  task db:start      - Start database stack"
+        echo "  task db:stop       - Stop database stack"
+        echo "  task db:status     - Check database status"
+        echo "  task db:backup     - Create database backup"
+        echo "  task db:restore    - Restore database"
+        echo "  task db:logs       - Show database logs"
+        echo "  task db:monitor    - Monitor database performance"
+        echo "  task db:restart    - Restart database stack"
+        echo ""
+        echo "API Management:"
+        echo "  task api:install   - Install API dependencies"
+        echo "  task api:start     - Start API server"
+        echo "  task api:stop      - Stop API server"
+        echo "  task api:status    - Check API status"
+        echo "  task api:test      - Test API endpoints"
+        echo ""
+        echo "Production:"
+        echo "  task serve-web     - Serve production web app"
+        echo ""
+        echo "Maintenance:"
+        echo "  task clean         - Clean Docker resources"
+        echo "  task clean-all     - Clean everything including Flutter SDK"
+        echo "  task stop-all      - Stop all Algebrini containers"
+        echo ""
+        echo "CI/CD:"
+        echo "  task ci            - Run complete pipeline"
+        echo "  task ci:test       - Run CI test suite"
+        echo "  task ci:build      - Run CI build"
+        echo ""
+        echo "Dependencies:"
+        echo "  task deps:get      - Get Flutter dependencies"
+        echo "  task deps:upgrade  - Upgrade Flutter dependencies"
+        echo "  task deps:outdated - Check for outdated dependencies"
+        echo ""
+        echo "For more information, run: task --list-all"

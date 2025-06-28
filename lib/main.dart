@@ -17,20 +17,20 @@ import 'services/game_registry.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Initialize database service
   final gameDataService = GameDataService();
   await gameDataService.initialize();
-  
+
   // Initialize game registry with database support
   GameRegistry().initializeWithDatabase(gameDataService);
-  
+
   runApp(AlgebriniApp(gameDataService: gameDataService));
 }
 
 class AlgebriniApp extends StatelessWidget {
   final GameDataService gameDataService;
-  
+
   const AlgebriniApp({super.key, required this.gameDataService});
 
   @override
@@ -67,7 +67,8 @@ class AlgebriniApp extends StatelessWidget {
                     ),
                   )
                 : ThemeData(
-                    colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+                    colorScheme:
+                        ColorScheme.fromSeed(seedColor: Colors.deepPurple),
                     useMaterial3: true,
                     fontFamily: 'Roboto',
                     visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -101,9 +102,10 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
-  
+
   // Global key to access this state from other widgets
-  static final GlobalKey<_MainNavigationState> globalKey = GlobalKey<_MainNavigationState>();
+  static final GlobalKey<_MainNavigationState> globalKey =
+      GlobalKey<_MainNavigationState>();
 
   static const List<Widget> _screens = <Widget>[
     HomeScreen(),
@@ -168,4 +170,4 @@ class _MainNavigationState extends State<MainNavigation> {
       ),
     );
   }
-} 
+}

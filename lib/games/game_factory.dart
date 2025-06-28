@@ -16,7 +16,7 @@ class GameFactory {
         throw ArgumentError('Unknown game ID: $gameId');
     }
   }
-  
+
   static List<String> getAvailableGames() {
     return [
       'recursive-sequences',
@@ -24,7 +24,7 @@ class GameFactory {
       'factorization-fun',
     ];
   }
-  
+
   static String getGameTitle(String gameId) {
     switch (gameId) {
       case 'recursive-sequences':
@@ -37,7 +37,7 @@ class GameFactory {
         return 'Unknown Game';
     }
   }
-  
+
   static String getGameDescription(String gameId) {
     switch (gameId) {
       case 'recursive-sequences':
@@ -50,4 +50,4 @@ class GameFactory {
         return 'Unknown game description';
     }
   }
-} 
+}

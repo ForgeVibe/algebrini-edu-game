@@ -38,7 +38,9 @@ class _StoryIntroScreenState extends State<StoryIntroScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Expanded(
-                child: _currentPage == 0 ? _buildStoryPage() : _buildAvatarSelection(),
+                child: _currentPage == 0
+                    ? _buildStoryPage()
+                    : _buildAvatarSelection(),
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -53,7 +55,9 @@ class _StoryIntroScreenState extends State<StoryIntroScreen> {
                   const Spacer(),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _handleNext,
-                    child: Text(_currentPage == _storyPages.length - 1 ? 'Start Adventure!' : 'Next'),
+                    child: Text(_currentPage == _storyPages.length - 1
+                        ? 'Start Adventure!'
+                        : 'Next'),
                   ),
                 ],
               ),
@@ -73,7 +77,8 @@ class _StoryIntroScreenState extends State<StoryIntroScreen> {
           const SizedBox(height: 24),
           Text(
             _storyPages[0],
-            style: GoogleFonts.lexend(fontSize: 22, color: Colors.deepPurple[900]),
+            style:
+                GoogleFonts.lexend(fontSize: 22, color: Colors.deepPurple[900]),
             textAlign: TextAlign.center,
           ),
         ],
@@ -87,7 +92,8 @@ class _StoryIntroScreenState extends State<StoryIntroScreen> {
       children: [
         Text(
           _storyPages[1],
-          style: GoogleFonts.lexend(fontSize: 20, color: Colors.deepPurple[900]),
+          style:
+              GoogleFonts.lexend(fontSize: 20, color: Colors.deepPurple[900]),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 24),
@@ -103,20 +109,23 @@ class _StoryIntroScreenState extends State<StoryIntroScreen> {
                 children: [
                   CircleAvatar(
                     radius: 40,
-                    backgroundColor: _selectedAvatar == i ? Colors.amber : Colors.white,
+                    backgroundColor:
+                        _selectedAvatar == i ? Colors.amber : Colors.white,
                     child: Padding(
                       padding: const EdgeInsets.all(6.0),
                       child: Image.asset(
                         avatar['asset'],
                         fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => Icon(Icons.person, size: 48, color: Colors.grey),
+                        errorBuilder: (_, __, ___) =>
+                            Icon(Icons.person, size: 48, color: Colors.grey),
                       ),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     avatar['name'],
-                    style: GoogleFonts.lexend(fontSize: 16, fontWeight: FontWeight.bold),
+                    style: GoogleFonts.lexend(
+                        fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
@@ -126,7 +135,8 @@ class _StoryIntroScreenState extends State<StoryIntroScreen> {
         if (_selectedAvatar == null)
           Padding(
             padding: const EdgeInsets.only(top: 16.0),
-            child: Text('Tap an avatar to select', style: TextStyle(color: Colors.red)),
+            child: Text('Tap an avatar to select',
+                style: TextStyle(color: Colors.red)),
           ),
       ],
     );
@@ -149,4 +159,4 @@ class _StoryIntroScreenState extends State<StoryIntroScreen> {
       }
     }
   }
-} 
+}

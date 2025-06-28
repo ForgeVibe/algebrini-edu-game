@@ -8,25 +8,64 @@ class LevelProgressionService {
   static const String _achievementsKey = 'achievements';
 
   // Level unlock requirements
-  static const Map<String, Map<int, Map<String, dynamic>>> _unlockRequirements = {
+  static const Map<String, Map<int, Map<String, dynamic>>> _unlockRequirements =
+      {
     'recursive-sequences': {
       1: {'type': 'always', 'requirement': null}, // Level 1 always unlocked
-      2: {'type': 'score', 'requirement': 3, 'game': 'recursive-sequences', 'level': 1}, // Score 3+ on level 1
-      3: {'type': 'score', 'requirement': 4, 'game': 'recursive-sequences', 'level': 2}, // Score 4+ on level 2
-      4: {'type': 'completion', 'requirement': 2, 'game': 'recursive-sequences'}, // Complete 2 levels
-      5: {'type': 'streak', 'requirement': 5, 'game': 'recursive-sequences'}, // 5 correct answers in a row
+      2: {
+        'type': 'score',
+        'requirement': 3,
+        'game': 'recursive-sequences',
+        'level': 1
+      }, // Score 3+ on level 1
+      3: {
+        'type': 'score',
+        'requirement': 4,
+        'game': 'recursive-sequences',
+        'level': 2
+      }, // Score 4+ on level 2
+      4: {
+        'type': 'completion',
+        'requirement': 2,
+        'game': 'recursive-sequences'
+      }, // Complete 2 levels
+      5: {
+        'type': 'streak',
+        'requirement': 5,
+        'game': 'recursive-sequences'
+      }, // 5 correct answers in a row
     },
     'simple-equations': {
       1: {'type': 'always', 'requirement': null},
-      2: {'type': 'score', 'requirement': 3, 'game': 'simple-equations', 'level': 1},
-      3: {'type': 'score', 'requirement': 4, 'game': 'simple-equations', 'level': 2},
+      2: {
+        'type': 'score',
+        'requirement': 3,
+        'game': 'simple-equations',
+        'level': 1
+      },
+      3: {
+        'type': 'score',
+        'requirement': 4,
+        'game': 'simple-equations',
+        'level': 2
+      },
       4: {'type': 'completion', 'requirement': 2, 'game': 'simple-equations'},
       5: {'type': 'streak', 'requirement': 5, 'game': 'simple-equations'},
     },
     'factorization-fun': {
       1: {'type': 'always', 'requirement': null},
-      2: {'type': 'score', 'requirement': 3, 'game': 'factorization-fun', 'level': 1},
-      3: {'type': 'score', 'requirement': 4, 'game': 'factorization-fun', 'level': 2},
+      2: {
+        'type': 'score',
+        'requirement': 3,
+        'game': 'factorization-fun',
+        'level': 1
+      },
+      3: {
+        'type': 'score',
+        'requirement': 4,
+        'game': 'factorization-fun',
+        'level': 2
+      },
       4: {'type': 'completion', 'requirement': 2, 'game': 'factorization-fun'},
       5: {'type': 'streak', 'requirement': 5, 'game': 'factorization-fun'},
     },
@@ -69,8 +108,10 @@ class LevelProgressionService {
   // Get unlocked levels for a specific game
   static Future<List<int>> getUnlockedLevels(String gameId) async {
     final prefs = await SharedPreferences.getInstance();
-    final unlockedStr = prefs.getString('${_unlockedLevelsKey}_$gameId') ?? '1'; // Level 1 always unlocked
-    final unlockedList = unlockedStr.split(',').map((e) => int.tryParse(e) ?? 1).toList();
+    final unlockedStr = prefs.getString('${_unlockedLevelsKey}_$gameId') ??
+        '1'; // Level 1 always unlocked
+    final unlockedList =
+        unlockedStr.split(',').map((e) => int.tryParse(e) ?? 1).toList();
     return unlockedList;
   }
 
@@ -83,20 +124,23 @@ class LevelProgressionService {
   // Get the highest unlocked level for a game
   static Future<int> getHighestUnlockedLevel(String gameId) async {
     final unlockedLevels = await getUnlockedLevels(gameId);
-    return unlockedLevels.isNotEmpty ? unlockedLevels.reduce((a, b) => a > b ? a : b) : 1;
+    return unlockedLevels.isNotEmpty
+        ? unlockedLevels.reduce((a, b) => a > b ? a : b)
+        : 1;
   }
 
   // Record a level completion with score
-  static Future<void> recordLevelCompletion(String gameId, int level, int score, {int? timeSeconds}) async {
+  static Future<void> recordLevelCompletion(String gameId, int level, int score,
+      {int? timeSeconds}) async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Record score
     final scoresKey = '${_levelScoresKey}_$gameId';
     final scoresStr = prefs.getString(scoresKey) ?? '{}';
     final scores = Map<String, dynamic>.from(jsonDecode(scoresStr));
     scores[level.toString()] = score;
     await prefs.setString(scoresKey, jsonEncode(scores));
-    
+
     // Record completion
     final completionsKey = '${_levelCompletionsKey}_$gameId';
     final completionsStr = prefs.getString(completionsKey) ?? '{}';
@@ -108,10 +152,10 @@ class LevelProgressionService {
       'timestamp': DateTime.now().toIso8601String(),
     };
     await prefs.setString(completionsKey, jsonEncode(completions));
-    
+
     // Check for new level unlocks
     await _checkForNewUnlocks(gameId);
-    
+
     // Check for achievements
     await _checkForAchievements(gameId, level, score, timeSeconds);
   }
@@ -135,7 +179,8 @@ class LevelProgressionService {
   }
 
   // Get level completion data
-  static Future<Map<String, dynamic>?> getLevelCompletion(String gameId, int level) async {
+  static Future<Map<String, dynamic>?> getLevelCompletion(
+      String gameId, int level) async {
     final prefs = await SharedPreferences.getInstance();
     final completionsKey = '${_levelCompletionsKey}_$gameId';
     final completionsStr = prefs.getString(completionsKey) ?? '{}';
@@ -170,18 +215,18 @@ class LevelProgressionService {
   static Future<void> _checkForNewUnlocks(String gameId) async {
     final requirements = _unlockRequirements[gameId];
     if (requirements == null) return;
-    
+
     final currentUnlocked = await getUnlockedLevels(gameId);
     final newUnlocked = <int>[];
-    
+
     for (final entry in requirements.entries) {
       final level = entry.key;
       final requirement = entry.value;
-      
+
       if (currentUnlocked.contains(level)) continue; // Already unlocked
-      
+
       bool shouldUnlock = false;
-      
+
       switch (requirement['type']) {
         case 'always':
           shouldUnlock = true;
@@ -203,39 +248,43 @@ class LevelProgressionService {
           shouldUnlock = currentStreak >= targetStreak;
           break;
       }
-      
+
       if (shouldUnlock) {
         newUnlocked.add(level);
       }
     }
-    
+
     if (newUnlocked.isNotEmpty) {
       final allUnlocked = [...currentUnlocked, ...newUnlocked];
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('${_unlockedLevelsKey}_$gameId', allUnlocked.join(','));
+      await prefs.setString(
+          '${_unlockedLevelsKey}_$gameId', allUnlocked.join(','));
     }
   }
 
   // Check for achievements
-  static Future<void> _checkForAchievements(String gameId, int level, int score, int? timeSeconds) async {
+  static Future<void> _checkForAchievements(
+      String gameId, int level, int score, int? timeSeconds) async {
     final currentAchievements = await getAchievements();
     final newAchievements = <String>[];
-    
+
     // First level completion
     if (!currentAchievements.contains('first_level')) {
       newAchievements.add('first_level');
     }
-    
+
     // Perfect score (score of 5)
     if (score == 5 && !currentAchievements.contains('perfect_score')) {
       newAchievements.add('perfect_score');
     }
-    
+
     // Speed demon (under 30 seconds)
-    if (timeSeconds != null && timeSeconds < 30 && !currentAchievements.contains('speed_demon')) {
+    if (timeSeconds != null &&
+        timeSeconds < 30 &&
+        !currentAchievements.contains('speed_demon')) {
       newAchievements.add('speed_demon');
     }
-    
+
     // Level master (all levels completed)
     if (!currentAchievements.contains('level_master')) {
       final allLevels = _unlockRequirements[gameId]?.keys.toList() ?? [];
@@ -251,7 +300,7 @@ class LevelProgressionService {
         newAchievements.add('level_master');
       }
     }
-    
+
     // Add new achievements
     if (newAchievements.isNotEmpty) {
       final allAchievements = [...currentAchievements, ...newAchievements];
@@ -288,12 +337,12 @@ class LevelProgressionService {
     final prefs = await SharedPreferences.getInstance();
     final keys = prefs.getKeys();
     for (final key in keys) {
-      if (key.startsWith(_unlockedLevelsKey) || 
-          key.startsWith(_levelScoresKey) || 
+      if (key.startsWith(_unlockedLevelsKey) ||
+          key.startsWith(_levelScoresKey) ||
           key.startsWith(_levelCompletionsKey) ||
           key == _achievementsKey) {
         await prefs.remove(key);
       }
     }
   }
-} 
+}

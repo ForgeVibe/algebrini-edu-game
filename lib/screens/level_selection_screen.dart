@@ -9,7 +9,7 @@ import 'game_screen.dart';
 class LevelSelectionScreen extends StatefulWidget {
   final String gameId;
   final String chapterTitle;
-  
+
   const LevelSelectionScreen({
     Key? key,
     required this.gameId,
@@ -35,15 +35,15 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
     // For now, use a simple list of levels
     final availableLevels = [1, 2, 3, 4, 5];
     final completionStatus = <int, bool>{};
-    
+
     for (final level in availableLevels) {
       final isCompleted = await LevelProgressionService.isLevelCompleted(
-        widget.gameId, 
+        widget.gameId,
         level,
       );
       completionStatus[level] = isCompleted;
     }
-    
+
     setState(() {
       _availableLevels = availableLevels;
       _levelCompletionStatus = completionStatus;
@@ -76,7 +76,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
           ),
         ),
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator(color: Colors.white))
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.white))
             : _buildLevelGrid(),
       ),
     );
@@ -118,7 +119,7 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
                 final level = _availableLevels[index];
                 final isCompleted = _levelCompletionStatus[level] ?? false;
                 final isUnlocked = _isLevelUnlocked(level);
-                
+
                 return _buildLevelCard(level, isCompleted, isUnlocked);
               },
             ),
@@ -180,7 +181,8 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
                 'Normal',
                 style: GoogleFonts.lexend(
                   fontSize: 12,
-                  color: _getLevelTextColor(isCompleted, isUnlocked).withOpacity(0.7),
+                  color: _getLevelTextColor(isCompleted, isUnlocked)
+                      .withOpacity(0.7),
                 ),
               ),
             ],
@@ -229,12 +231,14 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
   void _startLevel(int level) {
     // Create the appropriate game based on gameId
     final game = _createGame(widget.gameId);
-    
-    Navigator.of(context).push(
+
+    Navigator.of(context)
+        .push(
       MaterialPageRoute(
         builder: (context) => GameScreen(game: game),
       ),
-    ).then((_) {
+    )
+        .then((_) {
       // Refresh level completion status when returning from game
       _loadLevelData();
     });
@@ -252,4 +256,4 @@ class _LevelSelectionScreenState extends State<LevelSelectionScreen> {
         return RecursiveSequencesGame(); // Default fallback
     }
   }
-} 
+}

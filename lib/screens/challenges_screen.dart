@@ -12,7 +12,8 @@ class ChallengesScreen extends StatefulWidget {
   State<ChallengesScreen> createState() => _ChallengesScreenState();
 }
 
-class _ChallengesScreenState extends State<ChallengesScreen> with TickerProviderStateMixin {
+class _ChallengesScreenState extends State<ChallengesScreen>
+    with TickerProviderStateMixin {
   Map<String, dynamic>? _dailyChallenge;
   Map<String, dynamic>? _weeklyChallenge;
   Map<String, dynamic> _challengeStats = {};
@@ -40,7 +41,8 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
 
     try {
       final dailyChallenge = await ChallengeService.getCurrentDailyChallenge();
-      final weeklyChallenge = await ChallengeService.getCurrentWeeklyChallenge();
+      final weeklyChallenge =
+          await ChallengeService.getCurrentWeeklyChallenge();
       final challengeStats = await ChallengeService.getChallengeStats();
       final challengeHistory = await ChallengeService.getChallengeHistory();
 
@@ -64,8 +66,9 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
   }
 
   Future<void> _claimReward(String challengeId, bool isWeekly) async {
-    final success = await ChallengeService.claimChallengeReward(challengeId, isWeekly);
-    
+    final success =
+        await ChallengeService.claimChallengeReward(challengeId, isWeekly);
+
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -86,21 +89,29 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
 
   Color _getColorFromString(String colorName) {
     switch (colorName.toLowerCase()) {
-      case 'orange': return Colors.orange;
-      case 'gold': return Colors.amber;
-      case 'purple': return Colors.purple;
-      case 'blue': return Colors.blue;
-      case 'green': return Colors.green;
-      case 'red': return Colors.red;
-      case 'teal': return Colors.teal;
-      default: return Colors.grey;
+      case 'orange':
+        return Colors.orange;
+      case 'gold':
+        return Colors.amber;
+      case 'purple':
+        return Colors.purple;
+      case 'blue':
+        return Colors.blue;
+      case 'green':
+        return Colors.green;
+      case 'red':
+        return Colors.red;
+      case 'teal':
+        return Colors.teal;
+      default:
+        return Colors.grey;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final fontSizeProvider = Provider.of<FontSizeProvider>(context);
-    
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -144,13 +155,15 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
           // Stats card
           Card(
             elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             color: Colors.blue.shade100,
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
-                  Icon(Icons.emoji_events, size: 48, color: Colors.blue.shade700),
+                  Icon(Icons.emoji_events,
+                      size: 48, color: Colors.blue.shade700),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -180,7 +193,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Current daily challenge
           if (_dailyChallenge != null) ...[
             Text(
@@ -195,7 +208,8 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
           ] else ...[
             Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               color: Colors.grey.shade100,
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -225,13 +239,15 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
           // Stats card
           Card(
             elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             color: Colors.purple.shade100,
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Row(
                 children: [
-                  Icon(Icons.workspace_premium, size: 48, color: Colors.purple.shade700),
+                  Icon(Icons.workspace_premium,
+                      size: 48, color: Colors.purple.shade700),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -261,7 +277,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Current weekly challenge
           if (_weeklyChallenge != null) ...[
             Text(
@@ -276,7 +292,8 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
           ] else ...[
             Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               color: Colors.grey.shade100,
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -306,7 +323,8 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
           // Stats card
           Card(
             elevation: 4,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             color: Colors.green.shade100,
             child: Padding(
               padding: const EdgeInsets.all(20),
@@ -342,7 +360,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
             ),
           ),
           const SizedBox(height: 24),
-          
+
           Text(
             'Recent Challenges',
             style: GoogleFonts.baloo2(
@@ -351,11 +369,12 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
             ),
           ),
           const SizedBox(height: 16),
-          
+
           if (_challengeHistory.isEmpty)
             Card(
               elevation: 4,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               color: Colors.grey.shade100,
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -371,21 +390,21 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
               ),
             )
           else
-            ..._challengeHistory.take(10).map((challenge) => 
-              _buildHistoryCard(challenge, fontSizeProvider)
-            ),
+            ..._challengeHistory.take(10).map(
+                (challenge) => _buildHistoryCard(challenge, fontSizeProvider)),
         ],
       ),
     );
   }
 
-  Widget _buildChallengeCard(Map<String, dynamic> challenge, bool isWeekly, FontSizeProvider fontSizeProvider) {
+  Widget _buildChallengeCard(Map<String, dynamic> challenge, bool isWeekly,
+      FontSizeProvider fontSizeProvider) {
     final color = _getColorFromString(challenge['color']);
     final progress = challenge['progress'] as int;
     final completed = challenge['completed'] as bool;
     final claimed = challenge['claimed'] as bool;
     final reward = challenge['reward'] as Map<String, dynamic>;
-    
+
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -427,7 +446,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
               ],
             ),
             const SizedBox(height: 16),
-            
+
             // Progress bar
             LinearProgressIndicator(
               value: progress / 100,
@@ -445,7 +464,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Reward section
             Container(
               padding: const EdgeInsets.all(12),
@@ -470,7 +489,7 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
               ),
             ),
             const SizedBox(height: 16),
-            
+
             // Action button
             if (completed && !claimed)
               SizedBox(
@@ -479,7 +498,8 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
                   style: ElevatedButton.styleFrom(
                     backgroundColor: color,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
                     textStyle: GoogleFonts.baloo2(
                       fontSize: fontSizeProvider.fontSize,
                       fontWeight: FontWeight.bold,
@@ -534,12 +554,13 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
     );
   }
 
-  Widget _buildHistoryCard(Map<String, dynamic> challenge, FontSizeProvider fontSizeProvider) {
+  Widget _buildHistoryCard(
+      Map<String, dynamic> challenge, FontSizeProvider fontSizeProvider) {
     final color = _getColorFromString(challenge['color']);
     final completedAt = DateTime.parse(challenge['completedAt']);
     final isWeekly = challenge['isWeekly'] as bool;
     final reward = challenge['reward'] as Map<String, dynamic>;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
@@ -564,7 +585,8 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
           children: [
             Text(
               challenge['description'],
-              style: GoogleFonts.baloo2(fontSize: fontSizeProvider.fontSize - 2),
+              style:
+                  GoogleFonts.baloo2(fontSize: fontSizeProvider.fontSize - 2),
             ),
             Text(
               'Completed: ${completedAt.day}/${completedAt.month}/${completedAt.year}',
@@ -593,4 +615,4 @@ class _ChallengesScreenState extends State<ChallengesScreen> with TickerProvider
       ),
     );
   }
-} 
+}

@@ -49,17 +49,19 @@ class _PlayScreenState extends State<PlayScreen> {
           return Card(
             margin: const EdgeInsets.symmetric(vertical: 8.0),
             child: ListTile(
-              leading: Icon(game.icon, size: 40, color: Theme.of(context).primaryColor),
-              title: Text(game.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+              leading: Icon(game.icon,
+                  size: 40, color: Theme.of(context).primaryColor),
+              title: Text(game.title,
+                  style: const TextStyle(fontWeight: FontWeight.bold)),
               subtitle: Text(game.description),
               trailing: const Icon(Icons.play_circle_fill),
               onTap: () {
                 _startGame(game);
               },
-                      ),
+            ),
           );
         },
       ),
     );
   }
-} 
+}

@@ -19,4 +19,4 @@ class TtsService {
   static Future<bool> isSpeaking() async {
     return false;
   }
-} 
+}

@@ -48,4 +48,4 @@ class RewardsService {
     await prefs.remove(_starsKey);
     await prefs.remove(_badgesKey);
   }
-} 
+}

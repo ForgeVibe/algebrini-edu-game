@@ -50,9 +50,9 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
                 ),
               ),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Test buttons
             Row(
               children: [
@@ -71,9 +71,9 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             Row(
               children: [
                 Expanded(
@@ -91,9 +91,9 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
                 ),
               ],
             ),
-            
+
             const SizedBox(height: 8),
-            
+
             ElevatedButton(
               onPressed: _isLoading ? null : _testAll,
               style: ElevatedButton.styleFrom(
@@ -102,9 +102,9 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
               ),
               child: const Text('Test All'),
             ),
-            
+
             const SizedBox(height: 16),
-            
+
             // Results display
             Expanded(
               child: SingleChildScrollView(
@@ -112,30 +112,39 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (_games.isNotEmpty) ...[
-                      _buildSection('Games (${_games.length})', _games.map((game) => 
-                        '${game.name} - ${game.difficultyLevels} levels'
-                      ).toList()),
+                      _buildSection(
+                          'Games (${_games.length})',
+                          _games
+                              .map((game) =>
+                                  '${game.name} - ${game.difficultyLevels} levels')
+                              .toList()),
                       const SizedBox(height: 16),
                     ],
-                    
                     if (_chapters.isNotEmpty) ...[
-                      _buildSection('Chapters (${_chapters.length})', _chapters.map((chapter) => 
-                        '${chapter.title} - ${chapter.games.length} games'
-                      ).toList()),
+                      _buildSection(
+                          'Chapters (${_chapters.length})',
+                          _chapters
+                              .map((chapter) =>
+                                  '${chapter.title} - ${chapter.games.length} games')
+                              .toList()),
                       const SizedBox(height: 16),
                     ],
-                    
                     if (_realms.isNotEmpty) ...[
-                      _buildSection('Realms (${_realms.length})', _realms.map((realm) => 
-                        '${realm.name} - ${realm.description ?? 'No description'}'
-                      ).toList()),
+                      _buildSection(
+                          'Realms (${_realms.length})',
+                          _realms
+                              .map((realm) =>
+                                  '${realm.name} - ${realm.description ?? 'No description'}')
+                              .toList()),
                       const SizedBox(height: 16),
                     ],
-                    
                     if (_achievements.isNotEmpty) ...[
-                      _buildSection('Achievements (${_achievements.length})', _achievements.map((achievement) => 
-                        '${achievement.title} - ${achievement.points} points'
-                      ).toList()),
+                      _buildSection(
+                          'Achievements (${_achievements.length})',
+                          _achievements
+                              .map((achievement) =>
+                                  '${achievement.title} - ${achievement.points} points')
+                              .toList()),
                     ],
                   ],
                 ),
@@ -157,14 +166,14 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
             Text(
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+                    fontWeight: FontWeight.bold,
+                  ),
             ),
             const SizedBox(height: 8),
             ...items.map((item) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2.0),
-              child: Text('• $item'),
-            )),
+                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                  child: Text('• $item'),
+                )),
           ],
         ),
       ),
@@ -178,9 +187,10 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
     });
 
     try {
-      final gameDataService = Provider.of<GameDataService>(context, listen: false);
+      final gameDataService =
+          Provider.of<GameDataService>(context, listen: false);
       final games = await gameDataService.getGames();
-      
+
       setState(() {
         _games = games;
         _status = 'Games test completed: ${games.length} games found';
@@ -201,9 +211,10 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
     });
 
     try {
-      final gameDataService = Provider.of<GameDataService>(context, listen: false);
+      final gameDataService =
+          Provider.of<GameDataService>(context, listen: false);
       final chapters = await gameDataService.getChapters();
-      
+
       setState(() {
         _chapters = chapters;
         _status = 'Chapters test completed: ${chapters.length} chapters found';
@@ -224,9 +235,10 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
     });
 
     try {
-      final gameDataService = Provider.of<GameDataService>(context, listen: false);
+      final gameDataService =
+          Provider.of<GameDataService>(context, listen: false);
       final realms = await gameDataService.getRealms();
-      
+
       setState(() {
         _realms = realms;
         _status = 'Realms test completed: ${realms.length} realms found';
@@ -247,12 +259,14 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
     });
 
     try {
-      final gameDataService = Provider.of<GameDataService>(context, listen: false);
+      final gameDataService =
+          Provider.of<GameDataService>(context, listen: false);
       final achievements = await gameDataService.getAchievements();
-      
+
       setState(() {
         _achievements = achievements;
-        _status = 'Achievements test completed: ${achievements.length} achievements found';
+        _status =
+            'Achievements test completed: ${achievements.length} achievements found';
         _isLoading = false;
       });
     } catch (e) {
@@ -270,15 +284,16 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
     });
 
     try {
-      final gameDataService = Provider.of<GameDataService>(context, listen: false);
-      
+      final gameDataService =
+          Provider.of<GameDataService>(context, listen: false);
+
       final futures = await Future.wait([
         gameDataService.getGames(),
         gameDataService.getChapters(),
         gameDataService.getRealms(),
         gameDataService.getAchievements(),
       ]);
-      
+
       setState(() {
         _games = futures[0] as List<Game>;
         _chapters = futures[1] as List<Chapter>;
@@ -294,4 +309,4 @@ class _DatabaseTestScreenState extends State<DatabaseTestScreen> {
       });
     }
   }
-} 
+}

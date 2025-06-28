@@ -39,4 +39,4 @@ abstract class MiniGame {
 
   /// Resets the game to its initial state.
   void reset();
-} 
+}

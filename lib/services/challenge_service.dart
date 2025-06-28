@@ -88,7 +88,7 @@ class ChallengeService {
     final prefs = await SharedPreferences.getInstance();
     final today = DateTime.now().toIso8601String().split('T')[0];
     final lastChallengeDate = prefs.getString(_lastChallengeDateKey);
-    
+
     // Generate new challenge if it's a new day
     if (lastChallengeDate != today) {
       final newChallenge = _generateDailyChallenge();
@@ -96,13 +96,13 @@ class ChallengeService {
       await prefs.setString(_lastChallengeDateKey, today);
       return newChallenge;
     }
-    
+
     // Return existing challenge
     final challengeStr = prefs.getString(_dailyChallengeKey);
     if (challengeStr != null) {
       return Map<String, dynamic>.from(jsonDecode(challengeStr));
     }
-    
+
     return null;
   }
 
@@ -113,7 +113,7 @@ class ChallengeService {
     final weekStart = now.subtract(Duration(days: now.weekday - 1));
     final weekStartStr = weekStart.toIso8601String().split('T')[0];
     final lastWeeklyDate = prefs.getString(_lastWeeklyChallengeDateKey);
-    
+
     // Generate new challenge if it's a new week
     if (lastWeeklyDate != weekStartStr) {
       final newChallenge = _generateWeeklyChallenge();
@@ -121,13 +121,13 @@ class ChallengeService {
       await prefs.setString(_lastWeeklyChallengeDateKey, weekStartStr);
       return newChallenge;
     }
-    
+
     // Return existing challenge
     final challengeStr = prefs.getString(_weeklyChallengeKey);
     if (challengeStr != null) {
       return Map<String, dynamic>.from(jsonDecode(challengeStr));
     }
-    
+
     return null;
   }
 
@@ -137,7 +137,7 @@ class ChallengeService {
     final challengeTypes = _challengeTypes.keys.toList();
     final selectedType = challengeTypes[random.nextInt(challengeTypes.length)];
     final challengeConfig = _challengeTypes[selectedType]!;
-    
+
     return {
       'id': '${selectedType}_${DateTime.now().millisecondsSinceEpoch}',
       'type': selectedType,
@@ -160,7 +160,7 @@ class ChallengeService {
     final challengeTypes = _weeklyChallengeTypes.keys.toList();
     final selectedType = challengeTypes[random.nextInt(challengeTypes.length)];
     final challengeConfig = _weeklyChallengeTypes[selectedType]!;
-    
+
     return {
       'id': '${selectedType}_${DateTime.now().millisecondsSinceEpoch}',
       'type': selectedType,
@@ -178,14 +178,15 @@ class ChallengeService {
   }
 
   // Update challenge progress
-  static Future<void> updateChallengeProgress(String gameType, Map<String, dynamic> gameData) async {
+  static Future<void> updateChallengeProgress(
+      String gameType, Map<String, dynamic> gameData) async {
     final dailyChallenge = await getCurrentDailyChallenge();
     final weeklyChallenge = await getCurrentWeeklyChallenge();
-    
+
     if (dailyChallenge != null && !dailyChallenge['completed']) {
       await _updateDailyChallengeProgress(dailyChallenge, gameType, gameData);
     }
-    
+
     if (weeklyChallenge != null && !weeklyChallenge['completed']) {
       await _updateWeeklyChallengeProgress(weeklyChallenge, gameType, gameData);
     }
@@ -193,14 +194,13 @@ class ChallengeService {
 
   // Update daily challenge progress
   static Future<void> _updateDailyChallengeProgress(
-    Map<String, dynamic> challenge, 
-    String gameType, 
-    Map<String, dynamic> gameData
-  ) async {
+      Map<String, dynamic> challenge,
+      String gameType,
+      Map<String, dynamic> gameData) async {
     final type = challenge['type'];
     var progress = challenge['progress'] as int;
     var completed = challenge['completed'] as bool;
-    
+
     switch (type) {
       case 'speed_run':
         // Track time and questions completed
@@ -211,7 +211,7 @@ class ChallengeService {
           completed = true;
         }
         break;
-        
+
       case 'perfect_score':
         // Track streak
         final currentStreak = gameData['currentStreak'] ?? 0;
@@ -222,7 +222,7 @@ class ChallengeService {
           progress = (currentStreak / 5 * 100).round();
         }
         break;
-        
+
       case 'level_master':
         // Track levels completed
         final levelsCompleted = gameData['levelsCompleted'] ?? 0;
@@ -233,7 +233,7 @@ class ChallengeService {
           progress = (levelsCompleted / 3 * 100).round();
         }
         break;
-        
+
       case 'game_explorer':
         // Track games played today
         final gamesPlayed = gameData['gamesPlayedToday'] ?? 0;
@@ -244,7 +244,7 @@ class ChallengeService {
           progress = (gamesPlayed / 3 * 100).round();
         }
         break;
-        
+
       case 'accuracy_champion':
         // Track accuracy over questions
         final accuracy = gameData['accuracy'] ?? 0;
@@ -257,15 +257,15 @@ class ChallengeService {
         }
         break;
     }
-    
+
     // Update challenge
     challenge['progress'] = progress;
     challenge['completed'] = completed;
-    
+
     // Save updated challenge
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_dailyChallengeKey, jsonEncode(challenge));
-    
+
     // Log analytics
     if (completed) {
       await AnalyticsService.logEvent('daily_challenge_completed', details: {
@@ -277,14 +277,13 @@ class ChallengeService {
 
   // Update weekly challenge progress
   static Future<void> _updateWeeklyChallengeProgress(
-    Map<String, dynamic> challenge, 
-    String gameType, 
-    Map<String, dynamic> gameData
-  ) async {
+      Map<String, dynamic> challenge,
+      String gameType,
+      Map<String, dynamic> gameData) async {
     final type = challenge['type'];
     var progress = challenge['progress'] as int;
     var completed = challenge['completed'] as bool;
-    
+
     switch (type) {
       case 'weekly_streak':
         // Track consecutive days played
@@ -296,7 +295,7 @@ class ChallengeService {
           progress = (consecutiveDays / 5 * 100).round();
         }
         break;
-        
+
       case 'weekly_master':
         // Track if all levels in a game are completed
         final allLevelsCompleted = gameData['allLevelsCompleted'] ?? false;
@@ -305,7 +304,7 @@ class ChallengeService {
           completed = true;
         }
         break;
-        
+
       case 'weekly_explorer':
         // Track total games played this week
         final gamesPlayed = gameData['gamesPlayedThisWeek'] ?? 0;
@@ -317,15 +316,15 @@ class ChallengeService {
         }
         break;
     }
-    
+
     // Update challenge
     challenge['progress'] = progress;
     challenge['completed'] = completed;
-    
+
     // Save updated challenge
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_weeklyChallengeKey, jsonEncode(challenge));
-    
+
     // Log analytics
     if (completed) {
       await AnalyticsService.logEvent('weekly_challenge_completed', details: {
@@ -336,62 +335,63 @@ class ChallengeService {
   }
 
   // Claim challenge reward
-  static Future<bool> claimChallengeReward(String challengeId, bool isWeekly) async {
+  static Future<bool> claimChallengeReward(
+      String challengeId, bool isWeekly) async {
     final prefs = await SharedPreferences.getInstance();
     final key = isWeekly ? _weeklyChallengeKey : _dailyChallengeKey;
-    
+
     final challengeStr = prefs.getString(key);
     if (challengeStr == null) return false;
-    
+
     final challenge = Map<String, dynamic>.from(jsonDecode(challengeStr));
-    
-    if (challenge['id'] != challengeId || 
-        !challenge['completed'] || 
+
+    if (challenge['id'] != challengeId ||
+        !challenge['completed'] ||
         challenge['claimed']) {
       return false;
     }
-    
+
     // Award rewards
     final reward = challenge['reward'] as Map<String, dynamic>;
     await RewardsService.addCoins(reward['coins'] ?? 0);
     await RewardsService.addStars(reward['stars'] ?? 0);
-    
+
     // Mark as claimed
     challenge['claimed'] = true;
     await prefs.setString(key, jsonEncode(challenge));
-    
+
     // Add to history
     await _addToHistory(challenge, isWeekly);
-    
+
     // Log analytics
     await AnalyticsService.logEvent('challenge_reward_claimed', details: {
       'challengeId': challengeId,
       'isWeekly': isWeekly,
       'reward': reward,
     });
-    
+
     return true;
   }
 
   // Add completed challenge to history
-  static Future<void> _addToHistory(Map<String, dynamic> challenge, bool isWeekly) async {
+  static Future<void> _addToHistory(
+      Map<String, dynamic> challenge, bool isWeekly) async {
     final prefs = await SharedPreferences.getInstance();
     final historyStr = prefs.getString(_challengeHistoryKey) ?? '[]';
     final history = List<Map<String, dynamic>>.from(
-      jsonDecode(historyStr).map((e) => Map<String, dynamic>.from(e))
-    );
-    
+        jsonDecode(historyStr).map((e) => Map<String, dynamic>.from(e)));
+
     history.add({
       ...challenge,
       'completedAt': DateTime.now().toIso8601String(),
       'isWeekly': isWeekly,
     });
-    
+
     // Keep only last 50 challenges
     if (history.length > 50) {
       history.removeRange(0, history.length - 50);
     }
-    
+
     await prefs.setString(_challengeHistoryKey, jsonEncode(history));
   }
 
@@ -400,8 +400,7 @@ class ChallengeService {
     final prefs = await SharedPreferences.getInstance();
     final historyStr = prefs.getString(_challengeHistoryKey) ?? '[]';
     return List<Map<String, dynamic>>.from(
-      jsonDecode(historyStr).map((e) => Map<String, dynamic>.from(e))
-    );
+        jsonDecode(historyStr).map((e) => Map<String, dynamic>.from(e)));
   }
 
   // Get challenge statistics
@@ -409,16 +408,14 @@ class ChallengeService {
     final history = await getChallengeHistory();
     final dailyCompleted = history.where((c) => !c['isWeekly']).length;
     final weeklyCompleted = history.where((c) => c['isWeekly']).length;
-    final totalRewards = history.fold<Map<String, int>>(
-      {'coins': 0, 'stars': 0},
-      (acc, challenge) {
-        final reward = challenge['reward'] as Map<String, dynamic>;
-        acc['coins'] = (acc['coins'] ?? 0) + ((reward['coins'] ?? 0) as int);
-        acc['stars'] = (acc['stars'] ?? 0) + ((reward['stars'] ?? 0) as int);
-        return acc;
-      }
-    );
-    
+    final totalRewards = history
+        .fold<Map<String, int>>({'coins': 0, 'stars': 0}, (acc, challenge) {
+      final reward = challenge['reward'] as Map<String, dynamic>;
+      acc['coins'] = (acc['coins'] ?? 0) + ((reward['coins'] ?? 0) as int);
+      acc['stars'] = (acc['stars'] ?? 0) + ((reward['stars'] ?? 0) as int);
+      return acc;
+    });
+
     return {
       'dailyCompleted': dailyCompleted,
       'weeklyCompleted': weeklyCompleted,
@@ -435,4 +432,4 @@ class ChallengeService {
     await prefs.remove(_lastChallengeDateKey);
     await prefs.remove(_lastWeeklyChallengeDateKey);
   }
-} 
+}

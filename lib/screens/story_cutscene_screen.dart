@@ -4,7 +4,7 @@ import '../services/story_progression_service.dart';
 
 class StoryCutsceneScreen extends StatefulWidget {
   final String cutsceneId;
-  
+
   const StoryCutsceneScreen({
     Key? key,
     required this.cutsceneId,
@@ -14,20 +14,20 @@ class StoryCutsceneScreen extends StatefulWidget {
   State<StoryCutsceneScreen> createState() => _StoryCutsceneScreenState();
 }
 
-class _StoryCutsceneScreenState extends State<StoryCutsceneScreen> 
+class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
     with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late AnimationController _textController;
   late AnimationController _characterController;
-  
+
   late Animation<double> _fadeAnimation;
   late Animation<double> _textAnimation;
   late Animation<double> _characterAnimation;
-  
+
   int _currentTextIndex = 0;
   bool _isTextComplete = false;
   bool _showContinueButton = false;
-  
+
   Map<String, dynamic> _cutsceneData = {};
   List<String> _textContent = [];
 
@@ -51,17 +51,17 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _textController = AnimationController(
       duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
-    
+
     _characterController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -69,7 +69,7 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
       parent: _fadeController,
       curve: Curves.easeInOut,
     ));
-    
+
     _textAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -77,7 +77,7 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
       parent: _textController,
       curve: Curves.easeInOut,
     ));
-    
+
     _characterAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -85,14 +85,15 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
       parent: _characterController,
       curve: Curves.elasticOut,
     ));
-    
+
     _fadeController.forward();
   }
 
   void _loadCutsceneData() {
-    _cutsceneData = StoryProgressionService.getCutsceneContent(widget.cutsceneId);
+    _cutsceneData =
+        StoryProgressionService.getCutsceneContent(widget.cutsceneId);
     _textContent = List<String>.from(_cutsceneData['content'] ?? []);
-    
+
     if (_textContent.isNotEmpty) {
       _startTextAnimation();
     }
@@ -114,7 +115,7 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
         _isTextComplete = false;
         _showContinueButton = false;
       });
-      
+
       _textController.reset();
       _startTextAnimation();
     } else {
@@ -131,7 +132,8 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Skip Cutscene?'),
-        content: const Text('Are you sure you want to skip this story sequence?'),
+        content:
+            const Text('Are you sure you want to skip this story sequence?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -171,7 +173,7 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
 
   BoxDecoration _buildBackgroundDecoration() {
     final background = _cutsceneData['background'] as String?;
-    
+
     if (background != null) {
       return BoxDecoration(
         image: DecorationImage(
@@ -184,7 +186,7 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
         ),
       );
     }
-    
+
     return const BoxDecoration(
       gradient: LinearGradient(
         begin: Alignment.topCenter,
@@ -234,11 +236,11 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
             // Character/Icon
             _buildCharacterSection(),
             const SizedBox(height: 40),
-            
+
             // Story text
             _buildStoryText(),
             const SizedBox(height: 40),
-            
+
             // Continue button
             if (_showContinueButton) _buildContinueButton(),
           ],
@@ -271,9 +273,9 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
     if (_textContent.isEmpty) {
       return const SizedBox.shrink();
     }
-    
+
     final currentText = _textContent[_currentTextIndex];
-    
+
     return Container(
       padding: const EdgeInsets.all(24.0),
       decoration: BoxDecoration(
@@ -286,9 +288,10 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
           AnimatedBuilder(
             animation: _textAnimation,
             builder: (context, child) {
-              final textLength = (currentText.length * _textAnimation.value).round();
+              final textLength =
+                  (currentText.length * _textAnimation.value).round();
               final displayText = currentText.substring(0, textLength);
-              
+
               return Text(
                 displayText,
                 style: GoogleFonts.lexend(
@@ -334,7 +337,9 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
           ),
         ),
         child: Text(
-          _currentTextIndex < _textContent.length - 1 ? 'Continue' : 'Begin Adventure!',
+          _currentTextIndex < _textContent.length - 1
+              ? 'Continue'
+              : 'Begin Adventure!',
           style: GoogleFonts.lexend(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -387,4 +392,4 @@ class _StoryCutsceneScreenState extends State<StoryCutsceneScreen>
         return Icons.person;
     }
   }
-} 
+}

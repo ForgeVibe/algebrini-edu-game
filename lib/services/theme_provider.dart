@@ -23,4 +23,4 @@ class ThemeProvider extends ChangeNotifier {
     await prefs.setBool(_highContrastKey, value);
     notifyListeners();
   }
-} 
+}

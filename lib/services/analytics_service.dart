@@ -4,7 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 class AnalyticsService {
   static const String _eventsKey = 'analyticsEvents';
 
-  static Future<void> logEvent(String type, {Map<String, dynamic>? details}) async {
+  static Future<void> logEvent(String type,
+      {Map<String, dynamic>? details}) async {
     final prefs = await SharedPreferences.getInstance();
     final events = await getEvents();
     final event = {
@@ -44,4 +45,4 @@ class AnalyticsService {
     final events = await getEvents();
     return jsonEncode(events);
   }
-} 
+}

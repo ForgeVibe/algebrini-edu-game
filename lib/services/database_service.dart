@@ -30,7 +30,7 @@ class DatabaseService {
         username: _dbUser,
         password: _dbPassword,
       );
-      
+
       await _connection.open();
       _isConnected = true;
       print('Database connected successfully');
@@ -52,7 +52,7 @@ class DatabaseService {
   bool get isConnected => _isConnected;
 
   // ===== GAMES =====
-  
+
   /// Get all games
   Future<List<Game>> getGames() async {
     if (!_isConnected) {
@@ -61,19 +61,20 @@ class DatabaseService {
 
     try {
       final results = await _connection.query(
-        'SELECT id, name, description, icon, difficulty_levels, created_at, updated_at, is_active FROM games WHERE is_active = true ORDER BY name'
-      );
-      
-      return results.map((row) => Game(
-        id: row[0] as String,
-        name: row[1] as String,
-        description: row[2] as String?,
-        icon: row[3] as String?,
-        difficultyLevels: row[4] as int,
-        createdAt: row[5] as DateTime,
-        updatedAt: row[6] as DateTime,
-        isActive: row[7] as bool,
-      )).toList();
+          'SELECT id, name, description, icon, difficulty_levels, created_at, updated_at, is_active FROM games WHERE is_active = true ORDER BY name');
+
+      return results
+          .map((row) => Game(
+                id: row[0] as String,
+                name: row[1] as String,
+                description: row[2] as String?,
+                icon: row[3] as String?,
+                difficultyLevels: row[4] as int,
+                createdAt: row[5] as DateTime,
+                updatedAt: row[6] as DateTime,
+                isActive: row[7] as bool,
+              ))
+          .toList();
     } catch (e) {
       print('Error fetching games: $e');
       return [];
@@ -88,12 +89,11 @@ class DatabaseService {
 
     try {
       final results = await _connection.query(
-        'SELECT id, name, description, icon, difficulty_levels, created_at, updated_at, is_active FROM games WHERE id = @gameId AND is_active = true',
-        substitutionValues: {'gameId': gameId}
-      );
-      
+          'SELECT id, name, description, icon, difficulty_levels, created_at, updated_at, is_active FROM games WHERE id = @gameId AND is_active = true',
+          substitutionValues: {'gameId': gameId});
+
       if (results.isEmpty) return null;
-      
+
       final row = results.first;
       return Game(
         id: row[0] as String,
@@ -112,7 +112,7 @@ class DatabaseService {
   }
 
   // ===== LEVELS =====
-  
+
   /// Get levels for a specific game
   Future<List<Level>> getLevelsByGameId(String gameId) async {
     if (!_isConnected) {
@@ -121,23 +121,25 @@ class DatabaseService {
 
     try {
       final results = await _connection.query(
-        'SELECT id, game_id, level_number, difficulty, requirements, created_at, updated_at, is_active FROM levels WHERE game_id = @gameId AND is_active = true ORDER BY level_number',
-        substitutionValues: {'gameId': gameId}
-      );
-      
-      return results.map((row) => Level(
-        id: row[0] as String,
-        gameId: row[1] as String,
-        levelNumber: row[2] as int,
-        difficulty: DifficultyLevel.values.firstWhere(
-          (e) => e.name == (row[3] as String),
-          orElse: () => DifficultyLevel.easy,
-        ),
-        requirements: row[4] != null ? jsonDecode(row[4] as String) : null,
-        createdAt: row[5] as DateTime,
-        updatedAt: row[6] as DateTime,
-        isActive: row[7] as bool,
-      )).toList();
+          'SELECT id, game_id, level_number, difficulty, requirements, created_at, updated_at, is_active FROM levels WHERE game_id = @gameId AND is_active = true ORDER BY level_number',
+          substitutionValues: {'gameId': gameId});
+
+      return results
+          .map((row) => Level(
+                id: row[0] as String,
+                gameId: row[1] as String,
+                levelNumber: row[2] as int,
+                difficulty: DifficultyLevel.values.firstWhere(
+                  (e) => e.name == (row[3] as String),
+                  orElse: () => DifficultyLevel.easy,
+                ),
+                requirements:
+                    row[4] != null ? jsonDecode(row[4] as String) : null,
+                createdAt: row[5] as DateTime,
+                updatedAt: row[6] as DateTime,
+                isActive: row[7] as bool,
+              ))
+          .toList();
     } catch (e) {
       print('Error fetching levels: $e');
       return [];
@@ -145,7 +147,7 @@ class DatabaseService {
   }
 
   // ===== CHALLENGES =====
-  
+
   /// Get challenges for a specific level
   Future<List<Challenge>> getChallengesByLevelId(String levelId) async {
     if (!_isConnected) {
@@ -154,23 +156,24 @@ class DatabaseService {
 
     try {
       final results = await _connection.query(
-        'SELECT id, level_id, question, answer, hint, explanation, metadata, difficulty_score, created_at, updated_at, is_active FROM challenges WHERE level_id = @levelId AND is_active = true ORDER BY difficulty_score',
-        substitutionValues: {'levelId': levelId}
-      );
-      
-      return results.map((row) => Challenge(
-        id: row[0] as String,
-        levelId: row[1] as String,
-        question: row[2] as String,
-        answer: row[3] as String,
-        hint: row[4] as String?,
-        explanation: row[5] as String?,
-        metadata: row[6] != null ? jsonDecode(row[6] as String) : null,
-        difficultyScore: row[7] as int,
-        createdAt: row[8] as DateTime,
-        updatedAt: row[9] as DateTime,
-        isActive: row[10] as bool,
-      )).toList();
+          'SELECT id, level_id, question, answer, hint, explanation, metadata, difficulty_score, created_at, updated_at, is_active FROM challenges WHERE level_id = @levelId AND is_active = true ORDER BY difficulty_score',
+          substitutionValues: {'levelId': levelId});
+
+      return results
+          .map((row) => Challenge(
+                id: row[0] as String,
+                levelId: row[1] as String,
+                question: row[2] as String,
+                answer: row[3] as String,
+                hint: row[4] as String?,
+                explanation: row[5] as String?,
+                metadata: row[6] != null ? jsonDecode(row[6] as String) : null,
+                difficultyScore: row[7] as int,
+                createdAt: row[8] as DateTime,
+                updatedAt: row[9] as DateTime,
+                isActive: row[10] as bool,
+              ))
+          .toList();
     } catch (e) {
       print('Error fetching challenges: $e');
       return [];
@@ -178,7 +181,7 @@ class DatabaseService {
   }
 
   // ===== CHAPTERS =====
-  
+
   /// Get all chapters
   Future<List<Chapter>> getChapters() async {
     if (!_isConnected) {
@@ -187,25 +190,27 @@ class DatabaseService {
 
     try {
       final results = await _connection.query(
-        'SELECT id, title, subtitle, description, requirements, realm_id, games, levels, story_cutscene_id, rewards, order_index, created_at, updated_at, is_active FROM chapters WHERE is_active = true ORDER BY order_index'
-      );
-      
-      return results.map((row) => Chapter(
-        id: row[0] as String,
-        title: row[1] as String,
-        subtitle: row[2] as String?,
-        description: row[3] as String?,
-        requirements: row[4] != null ? jsonDecode(row[4] as String) : null,
-        realmId: row[5] as String?,
-        games: List<String>.from(jsonDecode(row[6] as String)),
-        levels: List<int>.from(jsonDecode(row[7] as String)),
-        storyCutsceneId: row[8] as String?,
-        rewards: row[9] != null ? jsonDecode(row[9] as String) : null,
-        orderIndex: row[10] as int,
-        createdAt: row[11] as DateTime,
-        updatedAt: row[12] as DateTime,
-        isActive: row[13] as bool,
-      )).toList();
+          'SELECT id, title, subtitle, description, requirements, realm_id, games, levels, story_cutscene_id, rewards, order_index, created_at, updated_at, is_active FROM chapters WHERE is_active = true ORDER BY order_index');
+
+      return results
+          .map((row) => Chapter(
+                id: row[0] as String,
+                title: row[1] as String,
+                subtitle: row[2] as String?,
+                description: row[3] as String?,
+                requirements:
+                    row[4] != null ? jsonDecode(row[4] as String) : null,
+                realmId: row[5] as String?,
+                games: List<String>.from(jsonDecode(row[6] as String)),
+                levels: List<int>.from(jsonDecode(row[7] as String)),
+                storyCutsceneId: row[8] as String?,
+                rewards: row[9] != null ? jsonDecode(row[9] as String) : null,
+                orderIndex: row[10] as int,
+                createdAt: row[11] as DateTime,
+                updatedAt: row[12] as DateTime,
+                isActive: row[13] as bool,
+              ))
+          .toList();
     } catch (e) {
       print('Error fetching chapters: $e');
       return [];
@@ -213,7 +218,7 @@ class DatabaseService {
   }
 
   // ===== REALMS =====
-  
+
   /// Get all realms
   Future<List<Realm>> getRealms() async {
     if (!_isConnected) {
@@ -222,20 +227,21 @@ class DatabaseService {
 
     try {
       final results = await _connection.query(
-        'SELECT id, name, description, color, icon, background, created_at, updated_at, is_active FROM realms WHERE is_active = true ORDER BY name'
-      );
-      
-      return results.map((row) => Realm(
-        id: row[0] as String,
-        name: row[1] as String,
-        description: row[2] as String?,
-        color: row[3] as String?,
-        icon: row[4] as String?,
-        background: row[5] as String?,
-        createdAt: row[6] as DateTime,
-        updatedAt: row[7] as DateTime,
-        isActive: row[8] as bool,
-      )).toList();
+          'SELECT id, name, description, color, icon, background, created_at, updated_at, is_active FROM realms WHERE is_active = true ORDER BY name');
+
+      return results
+          .map((row) => Realm(
+                id: row[0] as String,
+                name: row[1] as String,
+                description: row[2] as String?,
+                color: row[3] as String?,
+                icon: row[4] as String?,
+                background: row[5] as String?,
+                createdAt: row[6] as DateTime,
+                updatedAt: row[7] as DateTime,
+                isActive: row[8] as bool,
+              ))
+          .toList();
     } catch (e) {
       print('Error fetching realms: $e');
       return [];
@@ -243,7 +249,7 @@ class DatabaseService {
   }
 
   // ===== ACHIEVEMENTS =====
-  
+
   /// Get all achievements
   Future<List<Achievement>> getAchievements() async {
     if (!_isConnected) {
@@ -252,21 +258,23 @@ class DatabaseService {
 
     try {
       final results = await _connection.query(
-        'SELECT id, title, description, icon, color, requirements, points, created_at, updated_at, is_active FROM achievements WHERE is_active = true ORDER BY points DESC'
-      );
-      
-      return results.map((row) => Achievement(
-        id: row[0] as String,
-        title: row[1] as String,
-        description: row[2] as String?,
-        icon: row[3] as String?,
-        color: row[4] as String?,
-        requirements: row[5] != null ? jsonDecode(row[5] as String) : null,
-        points: row[6] as int,
-        createdAt: row[7] as DateTime,
-        updatedAt: row[8] as DateTime,
-        isActive: row[9] as bool,
-      )).toList();
+          'SELECT id, title, description, icon, color, requirements, points, created_at, updated_at, is_active FROM achievements WHERE is_active = true ORDER BY points DESC');
+
+      return results
+          .map((row) => Achievement(
+                id: row[0] as String,
+                title: row[1] as String,
+                description: row[2] as String?,
+                icon: row[3] as String?,
+                color: row[4] as String?,
+                requirements:
+                    row[5] != null ? jsonDecode(row[5] as String) : null,
+                points: row[6] as int,
+                createdAt: row[7] as DateTime,
+                updatedAt: row[8] as DateTime,
+                isActive: row[9] as bool,
+              ))
+          .toList();
     } catch (e) {
       print('Error fetching achievements: $e');
       return [];
@@ -274,33 +282,35 @@ class DatabaseService {
   }
 
   // ===== USER PROGRESS =====
-  
+
   /// Get user progress for a specific game
-  Future<List<UserProgress>> getUserProgress(String userId, String gameId) async {
+  Future<List<UserProgress>> getUserProgress(
+      String userId, String gameId) async {
     if (!_isConnected) {
       return _getUserProgressFromApi(userId, gameId);
     }
 
     try {
       final results = await _connection.query(
-        'SELECT id, user_id, game_id, level_id, score, completed, time_seconds, attempts, completed_at, created_at, updated_at, is_active FROM user_progress WHERE user_id = @userId AND game_id = @gameId AND is_active = true ORDER BY created_at DESC',
-        substitutionValues: {'userId': userId, 'gameId': gameId}
-      );
-      
-      return results.map((row) => UserProgress(
-        id: row[0] as String,
-        userId: row[1] as String,
-        gameId: row[2] as String,
-        levelId: row[3] as String,
-        score: row[4] as int,
-        completed: row[5] as bool,
-        timeSeconds: row[6] as int?,
-        attempts: row[7] as int,
-        completedAt: row[8] as DateTime?,
-        createdAt: row[9] as DateTime,
-        updatedAt: row[10] as DateTime,
-        isActive: row[11] as bool,
-      )).toList();
+          'SELECT id, user_id, game_id, level_id, score, completed, time_seconds, attempts, completed_at, created_at, updated_at, is_active FROM user_progress WHERE user_id = @userId AND game_id = @gameId AND is_active = true ORDER BY created_at DESC',
+          substitutionValues: {'userId': userId, 'gameId': gameId});
+
+      return results
+          .map((row) => UserProgress(
+                id: row[0] as String,
+                userId: row[1] as String,
+                gameId: row[2] as String,
+                levelId: row[3] as String,
+                score: row[4] as int,
+                completed: row[5] as bool,
+                timeSeconds: row[6] as int?,
+                attempts: row[7] as int,
+                completedAt: row[8] as DateTime?,
+                createdAt: row[9] as DateTime,
+                updatedAt: row[10] as DateTime,
+                isActive: row[11] as bool,
+              ))
+          .toList();
     } catch (e) {
       print('Error fetching user progress: $e');
       return [];
@@ -314,8 +324,7 @@ class DatabaseService {
     }
 
     try {
-      await _connection.query(
-        '''
+      await _connection.query('''
         INSERT INTO user_progress (id, user_id, game_id, level_id, score, completed, time_seconds, attempts, completed_at, created_at, updated_at, is_active)
         VALUES (@id, @userId, @gameId, @levelId, @score, @completed, @timeSeconds, @attempts, @completedAt, @createdAt, @updatedAt, @isActive)
         ON CONFLICT (user_id, level_id) DO UPDATE SET
@@ -325,22 +334,20 @@ class DatabaseService {
           attempts = EXCLUDED.attempts,
           completed_at = EXCLUDED.completed_at,
           updated_at = EXCLUDED.updated_at
-        ''',
-        substitutionValues: {
-          'id': progress.id,
-          'userId': progress.userId,
-          'gameId': progress.gameId,
-          'levelId': progress.levelId,
-          'score': progress.score,
-          'completed': progress.completed,
-          'timeSeconds': progress.timeSeconds,
-          'attempts': progress.attempts,
-          'completedAt': progress.completedAt,
-          'createdAt': progress.createdAt,
-          'updatedAt': progress.updatedAt,
-          'isActive': progress.isActive,
-        }
-      );
+        ''', substitutionValues: {
+        'id': progress.id,
+        'userId': progress.userId,
+        'gameId': progress.gameId,
+        'levelId': progress.levelId,
+        'score': progress.score,
+        'completed': progress.completed,
+        'timeSeconds': progress.timeSeconds,
+        'attempts': progress.attempts,
+        'completedAt': progress.completedAt,
+        'createdAt': progress.createdAt,
+        'updatedAt': progress.updatedAt,
+        'isActive': progress.isActive,
+      });
       return true;
     } catch (e) {
       print('Error saving user progress: $e');
@@ -349,7 +356,7 @@ class DatabaseService {
   }
 
   // ===== API FALLBACK METHODS =====
-  
+
   Future<List<Game>> _getGamesFromApi() async {
     try {
       final response = await http.get(Uri.parse('$_baseUrl/games'));
@@ -378,7 +385,8 @@ class DatabaseService {
 
   Future<List<Level>> _getLevelsFromApi(String gameId) async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/games/$gameId/levels'));
+      final response =
+          await http.get(Uri.parse('$_baseUrl/games/$gameId/levels'));
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = jsonDecode(response.body);
         return jsonList.map((json) => Level.fromJson(json)).toList();
@@ -391,7 +399,8 @@ class DatabaseService {
 
   Future<List<Challenge>> _getChallengesFromApi(String levelId) async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/levels/$levelId/challenges'));
+      final response =
+          await http.get(Uri.parse('$_baseUrl/levels/$levelId/challenges'));
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = jsonDecode(response.body);
         return jsonList.map((json) => Challenge.fromJson(json)).toList();
@@ -441,9 +450,11 @@ class DatabaseService {
     return [];
   }
 
-  Future<List<UserProgress>> _getUserProgressFromApi(String userId, String gameId) async {
+  Future<List<UserProgress>> _getUserProgressFromApi(
+      String userId, String gameId) async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/users/$userId/progress?gameId=$gameId'));
+      final response = await http
+          .get(Uri.parse('$_baseUrl/users/$userId/progress?gameId=$gameId'));
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = jsonDecode(response.body);
         return jsonList.map((json) => UserProgress.fromJson(json)).toList();
@@ -467,4 +478,4 @@ class DatabaseService {
       return false;
     }
   }
-} 
+}

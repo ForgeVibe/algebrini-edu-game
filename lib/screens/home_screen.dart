@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadHomeData() async {
     final prefs = await SharedPreferences.getInstance();
     final stats = await GameStatsService.getStats();
-    
+
     setState(() {
       _username = prefs.getString('username') ?? 'Player';
       _stats = stats;
@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<Map<String, dynamic>> _getRecentActivity(Map<String, dynamic> stats) {
     final activities = <Map<String, dynamic>>[];
-    
+
     // Add last played game if available
     final lastPlayed = stats['lastPlayed'];
     if (lastPlayed != null && lastPlayed != 'Never') {
@@ -52,10 +52,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     // Add achievements if any
-    final accuracy = stats['totalAnswers'] > 0 
-        ? (stats['correctAnswers'] / stats['totalAnswers']) * 100 
+    final accuracy = stats['totalAnswers'] > 0
+        ? (stats['correctAnswers'] / stats['totalAnswers']) * 100
         : 0.0;
-    
+
     if (stats['totalGamesPlayed'] > 0) {
       activities.add({
         'type': 'achievement',
@@ -220,7 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildPlayfulStatCard(String label, String value, IconData icon, Color color) {
+  Widget _buildPlayfulStatCard(
+      String label, String value, IconData icon, Color color) {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -345,8 +346,10 @@ class _HomeScreenState extends State<HomeScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.pink.shade400,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                textStyle: GoogleFonts.baloo2(fontSize: 16, fontWeight: FontWeight.bold),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                textStyle: GoogleFonts.baloo2(
+                    fontSize: 16, fontWeight: FontWeight.bold),
               ),
               onPressed: () => Navigator.pushNamed(context, '/play'),
               child: const Text('Play'),
@@ -364,8 +367,8 @@ class _HomeScreenState extends State<HomeScreen> {
         Text(
           'Recent Activity',
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+                fontWeight: FontWeight.bold,
+              ),
         ),
         const SizedBox(height: 12),
         ..._recentActivity.map((activity) => _buildActivityTile(activity)),
@@ -399,4 +402,4 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
-} 
+}

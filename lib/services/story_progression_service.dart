@@ -13,7 +13,8 @@ class StoryProgressionService {
     'chapter_1': {
       'title': 'The Awakening',
       'subtitle': 'Discovering the Magic of Numbers',
-      'description': 'Welcome to Algebrini! Your journey begins in the mystical realm where numbers come alive.',
+      'description':
+          'Welcome to Algebrini! Your journey begins in the mystical realm where numbers come alive.',
       'requirements': {'type': 'none'},
       'realm': 'crystal_forest',
       'games': ['recursive-sequences'],
@@ -24,7 +25,8 @@ class StoryProgressionService {
     'chapter_2': {
       'title': 'The Pattern Seekers',
       'subtitle': 'Unlocking the Secrets of Sequences',
-      'description': 'Deep in the Crystal Forest, ancient patterns reveal themselves to those who look carefully.',
+      'description':
+          'Deep in the Crystal Forest, ancient patterns reveal themselves to those who look carefully.',
       'requirements': {'type': 'chapter_completion', 'chapter': 'chapter_1'},
       'realm': 'crystal_forest',
       'games': ['recursive-sequences'],
@@ -35,8 +37,13 @@ class StoryProgressionService {
     'chapter_3': {
       'title': 'The Equation Valley',
       'subtitle': 'Solving the Mysteries of Variables',
-      'description': 'Beyond the forest lies the Equation Valley, where unknown values hide in plain sight.',
-      'requirements': {'type': 'game_completion', 'game': 'recursive-sequences', 'levels': 3},
+      'description':
+          'Beyond the forest lies the Equation Valley, where unknown values hide in plain sight.',
+      'requirements': {
+        'type': 'game_completion',
+        'game': 'recursive-sequences',
+        'levels': 3
+      },
       'realm': 'equation_valley',
       'games': ['simple-equations'],
       'levels': [1, 2, 3],
@@ -46,8 +53,13 @@ class StoryProgressionService {
     'chapter_4': {
       'title': 'The Factorization Caves',
       'subtitle': 'Breaking Down the Building Blocks',
-      'description': 'In the depths of the Factorization Caves, numbers break apart to reveal their secrets.',
-      'requirements': {'type': 'game_completion', 'game': 'simple-equations', 'levels': 2},
+      'description':
+          'In the depths of the Factorization Caves, numbers break apart to reveal their secrets.',
+      'requirements': {
+        'type': 'game_completion',
+        'game': 'simple-equations',
+        'levels': 2
+      },
       'realm': 'factorization_caves',
       'games': ['factorization-fun'],
       'levels': [1, 2, 3],
@@ -57,8 +69,16 @@ class StoryProgressionService {
     'chapter_5': {
       'title': 'The Grand Convergence',
       'subtitle': 'Mastering All Mathematical Arts',
-      'description': 'At the heart of Algebrini, all mathematical paths converge in the ultimate challenge.',
-      'requirements': {'type': 'all_games_completion', 'games': ['recursive-sequences', 'simple-equations', 'factorization-fun']},
+      'description':
+          'At the heart of Algebrini, all mathematical paths converge in the ultimate challenge.',
+      'requirements': {
+        'type': 'all_games_completion',
+        'games': [
+          'recursive-sequences',
+          'simple-equations',
+          'factorization-fun'
+        ]
+      },
       'realm': 'convergence_tower',
       'games': ['recursive-sequences', 'simple-equations', 'factorization-fun'],
       'levels': [4, 5],
@@ -71,28 +91,32 @@ class StoryProgressionService {
   static const Map<String, Map<String, dynamic>> _realms = {
     'crystal_forest': {
       'name': 'Crystal Forest',
-      'description': 'A mystical forest where crystal formations follow mathematical patterns',
+      'description':
+          'A mystical forest where crystal formations follow mathematical patterns',
       'color': 'green',
       'icon': 'forest',
       'background': 'assets/backgrounds/crystal_forest.png',
     },
     'equation_valley': {
       'name': 'Equation Valley',
-      'description': 'A valley where equations float in the air like ancient runes',
+      'description':
+          'A valley where equations float in the air like ancient runes',
       'color': 'blue',
       'icon': 'valley',
       'background': 'assets/backgrounds/equation_valley.png',
     },
     'factorization_caves': {
       'name': 'Factorization Caves',
-      'description': 'Deep caves where numbers break apart into their prime factors',
+      'description':
+          'Deep caves where numbers break apart into their prime factors',
       'color': 'purple',
       'icon': 'cave',
       'background': 'assets/backgrounds/factorization_caves.png',
     },
     'convergence_tower': {
       'name': 'Convergence Tower',
-      'description': 'A towering structure where all mathematical knowledge converges',
+      'description':
+          'A towering structure where all mathematical knowledge converges',
       'color': 'gold',
       'icon': 'tower',
       'background': 'assets/backgrounds/convergence_tower.png',
@@ -205,17 +229,17 @@ class StoryProgressionService {
   // Record chapter completion
   static Future<void> completeChapter(String chapterId) async {
     final prefs = await SharedPreferences.getInstance();
-    
+
     // Update current chapter
     await prefs.setString(_currentChapterKey, chapterId);
-    
+
     // Add to unlocked chapters if not already there
     final unlockedChapters = await getUnlockedChapters();
     if (!unlockedChapters.contains(chapterId)) {
       unlockedChapters.add(chapterId);
       await prefs.setString(_unlockedChaptersKey, unlockedChapters.join(','));
     }
-    
+
     // Record story progress
     final progressStr = prefs.getString(_storyProgressKey) ?? '{}';
     final progress = Map<String, dynamic>.from(jsonDecode(progressStr));
@@ -224,7 +248,7 @@ class StoryProgressionService {
       'completedAt': DateTime.now().toIso8601String(),
     };
     await prefs.setString(_storyProgressKey, jsonEncode(progress));
-    
+
     // Check for new chapter unlocks
     await _checkForNewChapterUnlocks();
   }
@@ -244,10 +268,12 @@ class StoryProgressionService {
   }
 
   // Update character progress
-  static Future<void> updateCharacterProgress(String characterId, Map<String, dynamic> progress) async {
+  static Future<void> updateCharacterProgress(
+      String characterId, Map<String, dynamic> progress) async {
     final prefs = await SharedPreferences.getInstance();
     final currentProgressStr = prefs.getString(_characterProgressKey) ?? '{}';
-    final currentProgress = Map<String, dynamic>.from(jsonDecode(currentProgressStr));
+    final currentProgress =
+        Map<String, dynamic>.from(jsonDecode(currentProgressStr));
     currentProgress[characterId] = progress;
     await prefs.setString(_characterProgressKey, jsonEncode(currentProgress));
   }
@@ -256,13 +282,13 @@ class StoryProgressionService {
   static Future<List<String>> getAvailableChapters() async {
     final unlockedChapters = await getUnlockedChapters();
     final available = <String>[];
-    
+
     for (final chapterId in _chapters.keys) {
       if (await _canAccessChapter(chapterId)) {
         available.add(chapterId);
       }
     }
-    
+
     return available;
   }
 
@@ -270,10 +296,10 @@ class StoryProgressionService {
   static Future<bool> _canAccessChapter(String chapterId) async {
     final chapter = _chapters[chapterId];
     if (chapter == null) return false;
-    
+
     final requirements = chapter['requirements'];
     if (requirements == null) return true;
-    
+
     switch (requirements['type']) {
       case 'none':
         return true;
@@ -310,13 +336,14 @@ class StoryProgressionService {
   static Future<void> _checkForNewChapterUnlocks() async {
     final unlockedChapters = await getUnlockedChapters();
     final newUnlocks = <String>[];
-    
+
     for (final chapterId in _chapters.keys) {
-      if (!unlockedChapters.contains(chapterId) && await _canAccessChapter(chapterId)) {
+      if (!unlockedChapters.contains(chapterId) &&
+          await _canAccessChapter(chapterId)) {
         newUnlocks.add(chapterId);
       }
     }
-    
+
     if (newUnlocks.isNotEmpty) {
       final allUnlocked = [...unlockedChapters, ...newUnlocks];
       final prefs = await SharedPreferences.getInstance();
@@ -337,13 +364,14 @@ class StoryProgressionService {
   // Get next chapter to unlock
   static Future<String?> getNextChapterToUnlock() async {
     final unlockedChapters = await getUnlockedChapters();
-    
+
     for (final chapterId in _chapters.keys) {
-      if (!unlockedChapters.contains(chapterId) && await _canAccessChapter(chapterId)) {
+      if (!unlockedChapters.contains(chapterId) &&
+          await _canAccessChapter(chapterId)) {
         return chapterId;
       }
     }
-    
+
     return null;
   }
 
@@ -359,14 +387,14 @@ class StoryProgressionService {
   static Future<List<String>> getAvailableRealms() async {
     final unlockedChapters = await getUnlockedChapters();
     final realms = <String>{};
-    
+
     for (final chapterId in unlockedChapters) {
       final chapter = _chapters[chapterId];
       if (chapter != null) {
         realms.add(chapter['realm'] as String);
       }
     }
-    
+
     return realms.toList();
   }
-} 
+}

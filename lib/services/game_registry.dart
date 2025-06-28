@@ -37,7 +37,7 @@ class GameRegistry {
     if (_databaseGames != null) {
       return List.unmodifiable(_databaseGames!);
     }
-    
+
     // Fallback to hardcoded games
     return List.unmodifiable([
       RecursiveSequencesGame(),
@@ -61,4 +61,4 @@ class GameRegistry {
 
   /// Get the game data service if available
   GameDataService? get gameDataService => _gameDataService;
-} 
+}

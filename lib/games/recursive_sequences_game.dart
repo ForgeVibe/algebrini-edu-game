@@ -11,7 +11,7 @@ class RecursiveSequencesGame implements MiniGame {
   late int _answer;
   late String _hint;
   late String _sequenceType;
-  
+
   // Database support
   GameDataService? _gameDataService;
   String? _currentLevelId;
@@ -20,7 +20,8 @@ class RecursiveSequencesGame implements MiniGame {
 
   // Level-specific sequences with increasing difficulty
   static const Map<int, List<Map<String, dynamic>>> _levelSequences = {
-    1: [ // Easy - Simple arithmetic sequences
+    1: [
+      // Easy - Simple arithmetic sequences
       {
         'sequence': [2, 4, 6, 8, 10],
         'type': 'Arithmetic',
@@ -40,7 +41,8 @@ class RecursiveSequencesGame implements MiniGame {
         'answer': 30,
       },
     ],
-    2: [ // Medium - Geometric sequences
+    2: [
+      // Medium - Geometric sequences
       {
         'sequence': [2, 4, 8, 16, 32],
         'type': 'Geometric',
@@ -60,7 +62,8 @@ class RecursiveSequencesGame implements MiniGame {
         'answer': 243,
       },
     ],
-    3: [ // Hard - Fibonacci-like sequences
+    3: [
+      // Hard - Fibonacci-like sequences
       {
         'sequence': [1, 1, 2, 3, 5],
         'type': 'Fibonacci',
@@ -80,7 +83,8 @@ class RecursiveSequencesGame implements MiniGame {
         'answer': 13,
       },
     ],
-    4: [ // Expert - Mixed patterns
+    4: [
+      // Expert - Mixed patterns
       {
         'sequence': [1, 4, 9, 16, 25],
         'type': 'Square',
@@ -100,7 +104,8 @@ class RecursiveSequencesGame implements MiniGame {
         'answer': 16,
       },
     ],
-    5: [ // Master - Complex patterns
+    5: [
+      // Master - Complex patterns
       {
         'sequence': [1, 3, 6, 10, 15],
         'type': 'Triangular',
@@ -144,7 +149,8 @@ class RecursiveSequencesGame implements MiniGame {
   }
 
   void _loadChallengeFromHardcoded() {
-    final levelSequences = _levelSequences[_currentLevel] ?? _levelSequences[1]!;
+    final levelSequences =
+        _levelSequences[_currentLevel] ?? _levelSequences[1]!;
     final challengeData = levelSequences[_currentIndex % levelSequences.length];
     _currentSequence = List<int>.from(challengeData['sequence']);
     _hint = challengeData['hint'];
@@ -171,7 +177,8 @@ class RecursiveSequencesGame implements MiniGame {
       _currentLevelId = currentLevelData.id;
 
       // Get challenges for this level
-      _currentChallenges = await _gameDataService!.getChallenges(_currentLevelId!);
+      _currentChallenges =
+          await _gameDataService!.getChallenges(_currentLevelId!);
       if (_currentChallenges!.isEmpty) {
         // Fallback to hardcoded data
         _useDatabase = false;
@@ -180,15 +187,17 @@ class RecursiveSequencesGame implements MiniGame {
       }
 
       // Get current challenge
-      final challenge = _currentChallenges![_currentIndex % _currentChallenges!.length];
-      
+      final challenge =
+          _currentChallenges![_currentIndex % _currentChallenges!.length];
+
       // Parse sequence from challenge question (assuming format like "2, 4, 6, 8, 10")
       final sequenceStr = challenge.question.replaceAll('?', '').trim();
-      _currentSequence = sequenceStr.split(',')
+      _currentSequence = sequenceStr
+          .split(',')
           .map((s) => int.tryParse(s.trim()) ?? 0)
           .where((n) => n > 0)
           .toList();
-      
+
       _hint = challenge.hint ?? 'Look for the pattern in the sequence.';
       _answer = int.tryParse(challenge.answer) ?? 0;
       _sequenceType = 'Database';
@@ -215,15 +224,12 @@ class RecursiveSequencesGame implements MiniGame {
   @override
   GameChallenge getChallenge() {
     final question = '${_currentSequence.join(', ')}, ?';
-    return GameChallenge(
-      question: question, 
-      data: {
-        'sequence': _currentSequence,
-        'level': _currentLevel,
-        'type': _sequenceType,
-        'useDatabase': _useDatabase,
-      }
-    );
+    return GameChallenge(question: question, data: {
+      'sequence': _currentSequence,
+      'level': _currentLevel,
+      'type': _sequenceType,
+      'useDatabase': _useDatabase,
+    });
   }
 
   @override
@@ -260,13 +266,14 @@ class RecursiveSequencesGame implements MiniGame {
 
   // Database-specific methods
   bool get useDatabase => _useDatabase;
-  
+
   String? get currentLevelId => _currentLevelId;
-  
+
   List<Challenge>? get currentChallenges => _currentChallenges;
 
   // Save progress to database
-  Future<bool> saveProgress(String userId, int score, bool completed, {int? timeSeconds, int attempts = 1}) async {
+  Future<bool> saveProgress(String userId, int score, bool completed,
+      {int? timeSeconds, int attempts = 1}) async {
     if (!_useDatabase || _gameDataService == null || _currentLevelId == null) {
       return false;
     }
@@ -291,7 +298,7 @@ class RecursiveSequencesGame implements MiniGame {
   static Map<String, dynamic> getLevelInfo(int level) {
     final sequences = _levelSequences[level];
     if (sequences == null) return {};
-    
+
     return {
       'level': level,
       'difficulty': _getDifficultyName(level),
@@ -302,24 +309,36 @@ class RecursiveSequencesGame implements MiniGame {
 
   static String _getDifficultyName(int level) {
     switch (level) {
-      case 1: return 'Easy';
-      case 2: return 'Medium';
-      case 3: return 'Hard';
-      case 4: return 'Expert';
-      case 5: return 'Master';
-      default: return 'Unknown';
+      case 1:
+        return 'Easy';
+      case 2:
+        return 'Medium';
+      case 3:
+        return 'Hard';
+      case 4:
+        return 'Expert';
+      case 5:
+        return 'Master';
+      default:
+        return 'Unknown';
     }
   }
 
   // Get level description
   static String getLevelDescription(int level) {
     switch (level) {
-      case 1: return 'Simple arithmetic sequences with constant differences.';
-      case 2: return 'Geometric sequences with multiplication patterns.';
-      case 3: return 'Fibonacci-like sequences where each number depends on previous ones.';
-      case 4: return 'Mixed patterns including squares and triangular numbers.';
-      case 5: return 'Complex patterns including primes and factorials.';
-      default: return 'Unknown level.';
+      case 1:
+        return 'Simple arithmetic sequences with constant differences.';
+      case 2:
+        return 'Geometric sequences with multiplication patterns.';
+      case 3:
+        return 'Fibonacci-like sequences where each number depends on previous ones.';
+      case 4:
+        return 'Mixed patterns including squares and triangular numbers.';
+      case 5:
+        return 'Complex patterns including primes and factorials.';
+      default:
+        return 'Unknown level.';
     }
   }
-} 
+}

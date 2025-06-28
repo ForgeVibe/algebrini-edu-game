@@ -41,4 +41,4 @@ class FontSizeProvider extends ChangeNotifier {
     await prefs.setBool(_dyslexiaFontKey, value);
     notifyListeners();
   }
-} 
+}

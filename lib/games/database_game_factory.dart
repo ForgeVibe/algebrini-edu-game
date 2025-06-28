@@ -20,7 +20,7 @@ class DatabaseGameFactory {
   /// Create a game instance with database data
   static Future<BaseGame> createGame(String gameId) async {
     await initialize();
-    
+
     // Get game data from database
     final game = await _gameDataService.getGame(gameId);
     if (game == null) {
@@ -49,17 +49,14 @@ class DatabaseGameFactory {
   /// Get game titles from database
   static Future<Map<String, String>> getGameTitles() async {
     final games = await getAvailableGames();
-    return Map.fromEntries(
-      games.map((game) => MapEntry(game.id, game.name))
-    );
+    return Map.fromEntries(games.map((game) => MapEntry(game.id, game.name)));
   }
 
   /// Get game descriptions from database
   static Future<Map<String, String>> getGameDescriptions() async {
     final games = await getAvailableGames();
-    return Map.fromEntries(
-      games.map((game) => MapEntry(game.id, game.description ?? 'No description available'))
-    );
+    return Map.fromEntries(games.map((game) =>
+        MapEntry(game.id, game.description ?? 'No description available')));
   }
 
   /// Get levels for a specific game
@@ -81,7 +78,8 @@ class DatabaseGameFactory {
   }
 
   /// Get user progress for a game
-  static Future<List<UserProgress>> getUserProgress(String userId, String gameId) async {
+  static Future<List<UserProgress>> getUserProgress(
+      String userId, String gameId) async {
     await initialize();
     return await _gameDataService.getUserProgress(userId, gameId);
   }
@@ -109,7 +107,8 @@ class DatabaseGameFactory {
   }
 
   /// Check if user has completed a level
-  static Future<bool> hasUserCompletedLevel(String userId, String levelId) async {
+  static Future<bool> hasUserCompletedLevel(
+      String userId, String levelId) async {
     await initialize();
     return await _gameDataService.hasUserCompletedLevel(userId, levelId);
   }
@@ -121,19 +120,23 @@ class DatabaseGameFactory {
   }
 
   /// Get user's completion percentage for a game
-  static Future<double> getUserGameCompletionPercentage(String userId, String gameId) async {
+  static Future<double> getUserGameCompletionPercentage(
+      String userId, String gameId) async {
     await initialize();
-    return await _gameDataService.getUserGameCompletionPercentage(userId, gameId);
+    return await _gameDataService.getUserGameCompletionPercentage(
+        userId, gameId);
   }
 
   /// Check if a level is unlocked for a user
-  static Future<bool> isLevelUnlocked(String userId, String gameId, int levelNumber) async {
+  static Future<bool> isLevelUnlocked(
+      String userId, String gameId, int levelNumber) async {
     await initialize();
     return await _gameDataService.isLevelUnlocked(userId, gameId, levelNumber);
   }
 
   /// Get recommended next level for user
-  static Future<Level?> getRecommendedNextLevel(String userId, String gameId) async {
+  static Future<Level?> getRecommendedNextLevel(
+      String userId, String gameId) async {
     await initialize();
     return await _gameDataService.getRecommendedNextLevel(userId, gameId);
   }
@@ -157,4 +160,4 @@ class DatabaseGameFactory {
       _isInitialized = false;
     }
   }
-} 
+}

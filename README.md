@@ -30,10 +30,12 @@ An interactive Flutter game designed to teach algebra concepts to children aged 
 ```bash
 # Install Task: https://taskfile.dev/installation/
 # Then run:
-task dev          # Development mode
-task test         # Run tests
-task build-web    # Build for web
-task serve-web    # Serve production web app
+task dev:setup     # Complete development environment setup
+task dev:start     # Development mode (background)
+task dev:start-fg  # Development mode (foreground)
+task test          # Run tests
+task build:web     # Build for web
+task serve-web     # Serve production web app
 ```
 
 ### **Option 2: Local Flutter Development**
@@ -142,71 +144,128 @@ flutter build web
 flutter build apk
 
 # Or use Task
-task build-web
-task build-android
+task build:web
+task build:android
 ```
 
 ## 🛠️ Taskfile Commands
 
 The project uses [Task](https://taskfile.dev/) for all development, build, and CI automation. Tasks are organized into logical categories with prefixes:
 
-### **Environment Management (`env:*`)**
+### **Development Environment (`dev:*`)**
 | Task                | Description                                      |
 |---------------------|--------------------------------------------------|
-| env:dev             | Start development server (background)            |
-| env:dev-fg          | Start development server (foreground)            |
-| env:build-dev       | Build development Docker image                   |
-| env:stop            | Stop Algebrini development containers            |
-| env:stop-all        | Stop all Algebrini containers                    |
-| env:logs            | View development server logs                     |
-| env:restart         | Restart development server                       |
-| env:status          | Show development environment status              |
-| env:clean           | Clean Docker images and containers               |
-| env:clean-all       | Clean everything including Flutter SDK           |
+| dev:setup           | Complete development environment setup           |
+| dev:start           | Start development server (background)            |
+| dev:start-fg        | Start development server (foreground)            |
+| dev:stop            | Stop development server                          |
+| dev:restart         | Restart development server                       |
+| dev:reset           | Reset development environment                    |
+| dev:logs            | View development server logs                     |
+
+### **Legacy Aliases (for backward compatibility)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| dev                 | Alias for dev:start                              |
+| dev-fg              | Alias for dev:start-fg                           |
+
+### **Environment Status (`env:*`)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| env:status          | Check development environment status             |
 
 ### **Testing (`test:*`)**
 | Task                | Description                                      |
 |---------------------|--------------------------------------------------|
-| test:run            | Run all tests with coverage                      |
-| test:integration    | Run integration tests for Android and Web        |
-| test:coverage       | Run tests with coverage report                   |
-| test:build          | Build testing Docker image                       |
+| test                | Run all tests with coverage                      |
+| test:unit           | Run unit tests                                   |
+| test:integration    | Run integration tests                            |
+| test:coverage       | Generate test coverage report                    |
+| test:smoke          | Run smoke tests (basic functionality)            |
+| test:regression     | Run regression tests                             |
+| test:performance    | Run performance tests                            |
+| test:accessibility  | Run accessibility tests                          |
+| test:responsive     | Run responsive design tests                      |
+| test:mobile         | Run mobile-specific tests                        |
+| test:web            | Run web-specific tests                           |
+| test:nightly        | Run nightly test suite                           |
+| test:weekly         | Run weekly test suite                            |
+| test:monthly        | Run monthly test suite                           |
+| test:database       | Test database integration                        |
 
 ### **Build (`build:*`)**
 | Task                | Description                                      |
 |---------------------|--------------------------------------------------|
 | build:web           | Build web app for production                     |
-| build:web-image     | Build web production Docker image                |
 | build:android       | Build Android APK                                |
-| build:android-image | Build Android Docker image                       |
-| build:prod          | Build production Docker image                    |
-
-### **Deployment (`deploy:*`)**
-| Task                | Description                                      |
-|---------------------|--------------------------------------------------|
-| deploy:web          | Serve production web app with nginx              |
+| build:ios           | Build iOS app (requires macOS)                   |
+| build:all           | Build for all platforms                          |
 
 ### **Code Quality (`code:*`)**
 | Task                | Description                                      |
 |---------------------|--------------------------------------------------|
 | code:format         | Format Dart code                                 |
 | code:analyze        | Analyze Dart code                                |
+| code:lint           | Run linting                                      |
+| code:fix            | Format and analyze code                          |
+
+### **Database Management (`db:*`)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| db:start            | Start database stack                             |
+| db:stop             | Stop database stack                              |
+| db:status           | Check database status                            |
+| db:backup           | Create database backup                           |
+| db:restore          | Restore database                                 |
+| db:logs             | Show database logs                               |
+| db:monitor          | Monitor database performance                     |
+| db:restart          | Restart database stack                           |
+
+### **API Management (`api:*`)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| api:install         | Install API dependencies                         |
+| api:start           | Start API server                                 |
+| api:stop            | Stop API server                                  |
+| api:status          | Check API status                                 |
+| api:test            | Test API endpoints                               |
+
+### **Dependencies (`deps:*`)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| deps:get            | Get Flutter dependencies                         |
+| deps:upgrade        | Upgrade Flutter dependencies                     |
+| deps:outdated       | Check for outdated dependencies                  |
+
+### **Production (`serve-web`)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| serve-web           | Serve production web app with nginx              |
+
+### **Maintenance**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| clean               | Clean Docker resources                           |
+| clean-all           | Clean everything including Flutter SDK           |
+| stop-all            | Stop all Algebrini containers                    |
 
 ### **CI/CD (`ci:*`)**
 | Task                | Description                                      |
 |---------------------|--------------------------------------------------|
-| ci:run              | Run complete CI/CD pipeline                      |
+| ci                  | Run complete CI/CD pipeline                      |
+| ci:test             | Run CI test suite                                |
+| ci:build            | Run CI build                                     |
 
 ### **Utility**
 | Task                | Description                                      |
 |---------------------|--------------------------------------------------|
-| help                | Show detailed help                               |
-| default             | Show help by default (when running `task`)       |
+| help                | Show available tasks                             |
+| status              | Show development environment status              |
 
 Run `task <taskname>` to execute a task. For example:
 ```bash
-task env:dev
-task test:run
+task dev:start
+task test
 task build:web
 ```
 
@@ -214,23 +273,29 @@ task build:web
 
 ### **Quick Docker Setup (Recommended)**
 ```bash
+# Complete setup (first time or when you need database/API)
+task dev:setup
+
 # Start development server (background)
-task env:dev
+task dev:start
+
+# Start development server (foreground with hot reload)
+task dev:start-fg
 
 # View logs
-task env:logs
+task dev:logs
 
 # Stop development server
-task env:stop
+task dev:stop
 
 # Build for production
 task build:web
-task deploy:web
+task serve-web
 ```
 
 ### **Safer Container Management**
-- `task env:stop` and `task env:stop-all` only affect Algebrini containers, not your entire Docker environment.
-- Use `task env:clean` to remove only Algebrini images and containers.
+- `task dev:stop` and `task stop-all` only affect Algebrini containers, not your entire Docker environment.
+- Use `task clean` to remove only Algebrini images and containers.
 
 ### **Manual Docker Commands (Advanced)**
 ```bash

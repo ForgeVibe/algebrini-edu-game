@@ -5,7 +5,9 @@ part 'database_models.g.dart';
 
 // Enums matching database schema
 enum DifficultyLevel { easy, medium, hard, expert, master }
+
 enum ChallengeType { daily, weekly, special }
+
 enum UserRole { student, teacher, admin }
 
 // Base model with common fields
@@ -92,7 +94,8 @@ class Challenge extends BaseModel {
     required super.isActive,
   });
 
-  factory Challenge.fromJson(Map<String, dynamic> json) => _$ChallengeFromJson(json);
+  factory Challenge.fromJson(Map<String, dynamic> json) =>
+      _$ChallengeFromJson(json);
   Map<String, dynamic> toJson() => _$ChallengeToJson(this);
 }
 
@@ -127,7 +130,8 @@ class Chapter extends BaseModel {
     required super.isActive,
   });
 
-  factory Chapter.fromJson(Map<String, dynamic> json) => _$ChapterFromJson(json);
+  factory Chapter.fromJson(Map<String, dynamic> json) =>
+      _$ChapterFromJson(json);
   Map<String, dynamic> toJson() => _$ChapterToJson(this);
 }
 
@@ -179,7 +183,8 @@ class Achievement extends BaseModel {
     required super.isActive,
   });
 
-  factory Achievement.fromJson(Map<String, dynamic> json) => _$AchievementFromJson(json);
+  factory Achievement.fromJson(Map<String, dynamic> json) =>
+      _$AchievementFromJson(json);
   Map<String, dynamic> toJson() => _$AchievementToJson(this);
 }
 
@@ -262,12 +267,14 @@ class UserProgress extends BaseModel {
     required super.isActive,
   });
 
-  factory UserProgress.fromJson(Map<String, dynamic> json) => _$UserProgressFromJson(json);
+  factory UserProgress.fromJson(Map<String, dynamic> json) =>
+      _$UserProgressFromJson(json);
   Map<String, dynamic> toJson() => _$UserProgressToJson(this);
 }
 
 // JSON converters for enums
-class DifficultyLevelConverter implements JsonConverter<DifficultyLevel, String> {
+class DifficultyLevelConverter
+    implements JsonConverter<DifficultyLevel, String> {
   const DifficultyLevelConverter();
 
   @override
@@ -310,4 +317,4 @@ class UserRoleConverter implements JsonConverter<UserRole, String> {
 
   @override
   String toJson(UserRole object) => object.name;
-} 
+}

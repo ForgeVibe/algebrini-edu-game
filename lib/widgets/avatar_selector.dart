@@ -31,12 +31,14 @@ class AvatarSelector extends StatelessWidget {
           itemBuilder: (context, index) {
             final avatar = _avatars[index];
             final isSelected = selectedIndex == index;
-            
+
             return GestureDetector(
               onTap: () => onAvatarSelected(index),
               child: Container(
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.deepPurple.shade100 : Colors.grey.shade100,
+                  color: isSelected
+                      ? Colors.deepPurple.shade100
+                      : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: isSelected ? Colors.deepPurple : Colors.transparent,
@@ -49,15 +51,19 @@ class AvatarSelector extends StatelessWidget {
                     Icon(
                       avatar['icon'],
                       size: 32,
-                      color: isSelected ? Colors.deepPurple : Colors.grey.shade600,
+                      color:
+                          isSelected ? Colors.deepPurple : Colors.grey.shade600,
                     ),
                     const SizedBox(height: 4),
                     Text(
                       avatar['name'],
                       style: TextStyle(
                         fontSize: 10,
-                        color: isSelected ? Colors.deepPurple : Colors.grey.shade600,
-                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                        color: isSelected
+                            ? Colors.deepPurple
+                            : Colors.grey.shade600,
+                        fontWeight:
+                            isSelected ? FontWeight.bold : FontWeight.normal,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -89,4 +95,4 @@ class AvatarSelector extends StatelessWidget {
     {'icon': Icons.sports_basketball, 'name': 'Basketball'},
     {'icon': Icons.emoji_events, 'name': 'Champion'},
   ];
-} 
+}

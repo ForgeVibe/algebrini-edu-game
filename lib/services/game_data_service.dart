@@ -54,7 +54,7 @@ class GameDataService {
     if (_gamesCache != null) {
       return _gamesCache!;
     }
-    
+
     _gamesCache = await _dbService.getGames();
     return _gamesCache!;
   }
@@ -92,12 +92,14 @@ class GameDataService {
     final levels = await getLevels(gameId);
     return levels.firstWhere(
       (level) => level.levelNumber == levelNumber,
-      orElse: () => throw Exception('Level not found: $gameId level $levelNumber'),
+      orElse: () =>
+          throw Exception('Level not found: $gameId level $levelNumber'),
     );
   }
 
   /// Get levels by difficulty
-  Future<List<Level>> getLevelsByDifficulty(String gameId, DifficultyLevel difficulty) async {
+  Future<List<Level>> getLevelsByDifficulty(
+      String gameId, DifficultyLevel difficulty) async {
     final levels = await getLevels(gameId);
     return levels.where((level) => level.difficulty == difficulty).toList();
   }
@@ -119,17 +121,20 @@ class GameDataService {
   Future<Challenge?> getRandomChallenge(String levelId) async {
     final challenges = await getChallenges(levelId);
     if (challenges.isEmpty) return null;
-    
+
     challenges.shuffle();
     return challenges.first;
   }
 
   /// Get challenges by difficulty score range
-  Future<List<Challenge>> getChallengesByDifficultyRange(String levelId, int minScore, int maxScore) async {
+  Future<List<Challenge>> getChallengesByDifficultyRange(
+      String levelId, int minScore, int maxScore) async {
     final challenges = await getChallenges(levelId);
-    return challenges.where(
-      (challenge) => challenge.difficultyScore >= minScore && challenge.difficultyScore <= maxScore
-    ).toList();
+    return challenges
+        .where((challenge) =>
+            challenge.difficultyScore >= minScore &&
+            challenge.difficultyScore <= maxScore)
+        .toList();
   }
 
   // ===== CHAPTERS =====
@@ -156,9 +161,10 @@ class GameDataService {
   /// Get chapters by order index
   Future<List<Chapter>> getChaptersByOrder(int startIndex, int endIndex) async {
     final chapters = await getChapters();
-    return chapters.where(
-      (chapter) => chapter.orderIndex >= startIndex && chapter.orderIndex <= endIndex
-    ).toList();
+    return chapters
+        .where((chapter) =>
+            chapter.orderIndex >= startIndex && chapter.orderIndex <= endIndex)
+        .toList();
   }
 
   /// Get the next chapter after a given chapter
@@ -168,7 +174,7 @@ class GameDataService {
 
     final chapters = await getChapters();
     final nextIndex = currentChapter.orderIndex + 1;
-    
+
     return chapters.firstWhere(
       (chapter) => chapter.orderIndex == nextIndex,
       orElse: () => null,
@@ -218,17 +224,20 @@ class GameDataService {
   }
 
   /// Get achievements by points range
-  Future<List<Achievement>> getAchievementsByPointsRange(int minPoints, int maxPoints) async {
+  Future<List<Achievement>> getAchievementsByPointsRange(
+      int minPoints, int maxPoints) async {
     final achievements = await getAchievements();
-    return achievements.where(
-      (achievement) => achievement.points >= minPoints && achievement.points <= maxPoints
-    ).toList();
+    return achievements
+        .where((achievement) =>
+            achievement.points >= minPoints && achievement.points <= maxPoints)
+        .toList();
   }
 
   // ===== USER PROGRESS =====
 
   /// Get user progress for a game
-  Future<List<UserProgress>> getUserProgress(String userId, String gameId) async {
+  Future<List<UserProgress>> getUserProgress(
+      String userId, String gameId) async {
     return await _dbService.getUserProgress(userId, gameId);
   }
 
@@ -264,9 +273,9 @@ class GameDataService {
   Future<int> getUserHighestScore(String userId, String levelId) async {
     final progress = await _dbService.getUserProgress(userId, '');
     final levelProgress = progress.where((p) => p.levelId == levelId).toList();
-    
+
     if (levelProgress.isEmpty) return 0;
-    
+
     return levelProgress.map((p) => p.score).reduce((a, b) => a > b ? a : b);
   }
 
@@ -277,22 +286,24 @@ class GameDataService {
   }
 
   /// Get user's completion percentage for a game
-  Future<double> getUserGameCompletionPercentage(String userId, String gameId) async {
+  Future<double> getUserGameCompletionPercentage(
+      String userId, String gameId) async {
     final levels = await getLevels(gameId);
     if (levels.isEmpty) return 0.0;
 
     final completedLevels = await Future.wait(
-      levels.map((level) => hasUserCompletedLevel(userId, level.id))
-    );
+        levels.map((level) => hasUserCompletedLevel(userId, level.id)));
 
-    final completedCount = completedLevels.where((completed) => completed).length;
+    final completedCount =
+        completedLevels.where((completed) => completed).length;
     return (completedCount / levels.length) * 100;
   }
 
   // ===== UTILITY METHODS =====
 
   /// Check if a level is unlocked for a user
-  Future<bool> isLevelUnlocked(String userId, String gameId, int levelNumber) async {
+  Future<bool> isLevelUnlocked(
+      String userId, String gameId, int levelNumber) async {
     if (levelNumber == 1) return true; // First level is always unlocked
 
     final level = await getLevel(gameId, levelNumber);
@@ -308,13 +319,13 @@ class GameDataService {
   /// Get recommended next level for user
   Future<Level?> getRecommendedNextLevel(String userId, String gameId) async {
     final levels = await getLevels(gameId);
-    
+
     for (final level in levels) {
       if (!await hasUserCompletedLevel(userId, level.id)) {
         return level;
       }
     }
-    
+
     return null; // All levels completed
   }
 
@@ -335,4 +346,4 @@ class GameDataService {
     await _dbService.close();
     clearCache();
   }
-} 
+}

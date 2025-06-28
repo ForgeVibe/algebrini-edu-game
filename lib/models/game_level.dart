@@ -10,4 +10,4 @@ class GameLevel {
     required this.description,
     required this.difficulty,
   });
-} 
+}

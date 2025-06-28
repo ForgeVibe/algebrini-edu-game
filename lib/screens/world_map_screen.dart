@@ -12,12 +12,13 @@ class WorldMapScreen extends StatefulWidget {
   State<WorldMapScreen> createState() => _WorldMapScreenState();
 }
 
-class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStateMixin {
+class _WorldMapScreenState extends State<WorldMapScreen>
+    with TickerProviderStateMixin {
   late AnimationController _mapController;
   late AnimationController _realmController;
   late Animation<double> _mapAnimation;
   late Animation<double> _realmAnimation;
-  
+
   Map<String, dynamic> _storyProgress = {};
   List<String> _unlockedChapters = [];
   List<String> _availableRealms = [];
@@ -34,7 +35,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _mapAnimation = CurvedAnimation(
       parent: _mapController,
       curve: Curves.easeInOut,
@@ -43,7 +44,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
       parent: _realmController,
       curve: Curves.elasticOut,
     );
-    
+
     _loadWorldData();
     _mapController.forward();
   }
@@ -57,16 +58,17 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
 
   Future<void> _loadWorldData() async {
     final storyProgress = await StoryProgressionService.getStoryProgress();
-    final unlockedChapters = await StoryProgressionService.getUnlockedChapters();
+    final unlockedChapters =
+        await StoryProgressionService.getUnlockedChapters();
     final availableRealms = await StoryProgressionService.getAvailableRealms();
-    
+
     setState(() {
       _storyProgress = storyProgress;
       _unlockedChapters = unlockedChapters;
       _availableRealms = availableRealms;
       _isLoading = false;
     });
-    
+
     _realmController.forward();
   }
 
@@ -90,8 +92,9 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
             children: [
               _buildHeader(),
               Expanded(
-                child: _isLoading 
-                    ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white))
                     : _buildWorldMap(),
               ),
             ],
@@ -137,10 +140,10 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
         children: [
           // Background world map
           _buildBackgroundMap(),
-          
+
           // Realm locations
           ..._buildRealmLocations(),
-          
+
           // Floating particles effect
           _buildParticleEffect(),
         ],
@@ -178,7 +181,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
   List<Widget> _buildRealmLocations() {
     final allRealms = StoryProgressionService.getAllRealmDetails();
     final widgets = <Widget>[];
-    
+
     // Define realm positions on the map
     const realmPositions = {
       'crystal_forest': {'x': 0.2, 'y': 0.3},
@@ -186,19 +189,20 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
       'factorization_caves': {'x': 0.5, 'y': 0.7},
       'convergence_tower': {'x': 0.5, 'y': 0.2},
     };
-    
+
     for (final entry in allRealms.entries) {
       final realmId = entry.key;
       final realm = entry.value;
       final position = realmPositions[realmId];
-      
+
       if (position != null) {
         final isAvailable = _availableRealms.contains(realmId);
         final isUnlocked = _unlockedChapters.any((chapter) {
-          final chapterDetails = StoryProgressionService.getChapterDetails(chapter);
+          final chapterDetails =
+              StoryProgressionService.getChapterDetails(chapter);
           return chapterDetails['realm'] == realmId;
         });
-        
+
         widgets.add(
           Positioned(
             left: position['x']! * (MediaQuery.of(context).size.width - 64),
@@ -208,14 +212,15 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
         );
       }
     }
-    
+
     return widgets;
   }
 
-  Widget _buildRealmLocation(String realmId, Map<String, dynamic> realm, bool isAvailable, bool isUnlocked) {
+  Widget _buildRealmLocation(String realmId, Map<String, dynamic> realm,
+      bool isAvailable, bool isUnlocked) {
     final color = _getRealmColor(realm['color'] as String);
     final isActive = isAvailable && isUnlocked;
-    
+
     return ScaleTransition(
       scale: _realmAnimation,
       child: GestureDetector(
@@ -230,13 +235,15 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
               color: isActive ? Colors.white : Colors.grey.withOpacity(0.5),
               width: isActive ? 3 : 1,
             ),
-            boxShadow: isActive ? [
-              BoxShadow(
-                color: color.withOpacity(0.6),
-                blurRadius: 15,
-                spreadRadius: 2,
-              ),
-            ] : null,
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                      color: color.withOpacity(0.6),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : null,
           ),
           child: Icon(
             _getRealmIcon(realm['icon'] as String),
@@ -257,37 +264,49 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
 
   Color _getRealmColor(String colorName) {
     switch (colorName) {
-      case 'green': return Colors.green;
-      case 'blue': return Colors.blue;
-      case 'purple': return Colors.purple;
-      case 'gold': return Colors.amber;
-      default: return Colors.grey;
+      case 'green':
+        return Colors.green;
+      case 'blue':
+        return Colors.blue;
+      case 'purple':
+        return Colors.purple;
+      case 'gold':
+        return Colors.amber;
+      default:
+        return Colors.grey;
     }
   }
 
   IconData _getRealmIcon(String iconName) {
     switch (iconName) {
-      case 'forest': return Icons.forest;
-      case 'valley': return Icons.landscape;
-      case 'cave': return Icons.landscape;
-      case 'tower': return Icons.castle;
-      default: return Icons.location_on;
+      case 'forest':
+        return Icons.forest;
+      case 'valley':
+        return Icons.landscape;
+      case 'cave':
+        return Icons.landscape;
+      case 'tower':
+        return Icons.castle;
+      default:
+        return Icons.location_on;
     }
   }
 
   void _onRealmTapped(String realmId) async {
     final realm = StoryProgressionService.getRealmDetails(realmId);
     final chapters = StoryProgressionService.getChaptersByRealm(realmId);
-    final availableChapters = chapters.where((chapter) => 
-        _unlockedChapters.contains(chapter)).toList();
-    
+    final availableChapters = chapters
+        .where((chapter) => _unlockedChapters.contains(chapter))
+        .toList();
+
     if (availableChapters.isEmpty) {
       _showRealmLockedDialog(realm);
       return;
     }
-    
+
     // Show realm selection dialog
-    final selectedChapter = await _showRealmSelectionDialog(realm, availableChapters);
+    final selectedChapter =
+        await _showRealmSelectionDialog(realm, availableChapters);
     if (selectedChapter != null) {
       _navigateToChapter(selectedChapter);
     }
@@ -323,7 +342,8 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
     );
   }
 
-  Future<String?> _showRealmSelectionDialog(Map<String, dynamic> realm, List<String> availableChapters) async {
+  Future<String?> _showRealmSelectionDialog(
+      Map<String, dynamic> realm, List<String> availableChapters) async {
     return showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
@@ -337,7 +357,8 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
             ),
             const SizedBox(height: 16),
             ...availableChapters.map((chapterId) {
-              final chapter = StoryProgressionService.getChapterDetails(chapterId);
+              final chapter =
+                  StoryProgressionService.getChapterDetails(chapterId);
               return ListTile(
                 leading: Icon(Icons.play_circle, color: Colors.blue),
                 title: Text(chapter['title'] as String),
@@ -360,7 +381,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
   void _navigateToChapter(String chapterId) async {
     final chapter = StoryProgressionService.getChapterDetails(chapterId);
     final cutsceneId = chapter['storyCutscene'] as String?;
-    
+
     if (cutsceneId != null) {
       // Show story cutscene first
       final shouldContinue = await Navigator.of(context).push<bool>(
@@ -368,7 +389,7 @@ class _WorldMapScreenState extends State<WorldMapScreen> with TickerProviderStat
           builder: (context) => StoryCutsceneScreen(cutsceneId: cutsceneId),
         ),
       );
-      
+
       if (shouldContinue == true) {
         // Navigate to level selection
         _navigateToLevelSelection(chapter);
@@ -432,7 +453,7 @@ class ParticlePainter extends CustomPainter {
     final paint = Paint()
       ..color = Colors.white.withOpacity(0.3)
       ..style = PaintingStyle.fill;
-    
+
     // Draw floating particles
     for (int i = 0; i < 20; i++) {
       final x = (i * 37) % size.width;
@@ -440,7 +461,7 @@ class ParticlePainter extends CustomPainter {
       canvas.drawCircle(Offset(x, y), 1, paint);
     }
   }
-  
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-} 
+}
