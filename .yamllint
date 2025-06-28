@@ -1,0 +1,12 @@
+extends: default
+
+rules:
+  line-length:
+    max: 80
+    level: warning
+  document-start: disable
+  trailing-spaces: enable
+  new-line-at-end-of-file: enable
+
+ignore:
+  - Taskfile.yml 

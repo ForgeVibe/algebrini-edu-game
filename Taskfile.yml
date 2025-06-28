@@ -1,278 +1,287 @@
 version: '3'
 
 # Algebrini Educational Game Taskfile
-# Organized by categories with prefixes for better navigation
+# Organized by categories with prefixes for better navigation.
+# This version has been corrected for proper directory handling and dependency management.
 
-# ===== ENVIRONMENT & SETUP =====
-env:status:
-  desc: Check development environment status
-  cmds:
-    - echo "=== Environment Status ==="
-    - echo "Flutter SDK: $(which flutter 2>/dev/null || echo 'Not found')"
-    - echo "Dart SDK: $(which dart 2>/dev/null || echo 'Not found')"
-    - echo "Node.js: $(which node 2>/dev/null || echo 'Not found')"
-    - echo "npm: $(which npm 2>/dev/null || echo 'Not found')"
-    - echo "Docker: $(which docker 2>/dev/null || echo 'Not found')"
-    - echo "Docker Compose: $(which docker-compose 2>/dev/null || echo 'Not found')"
-    - echo ""
-    - echo "=== Database Status ==="
-    - task: db:status
+tasks:
+  default:
+    cmds:
+      - task: help
 
-# ===== DATABASE MANAGEMENT =====
-db:start:
-  desc: Start development database stack
-  cmds:
-    - cd infra/database/dev
-    - docker compose up -d
-    - echo "Database stack started"
-    - echo "PostgreSQL: localhost:5432"
-    - echo "Redis: localhost:6379"
-    - echo "pgAdmin: http://localhost:8081"
+  # ===== ENVIRONMENT & SETUP =====
+  env:status:
+    desc: Check development environment status
+    cmds:
+      - |
+        echo '=== Environment Status ==='
+        echo "Flutter SDK:     $(which flutter 2>/dev/null || echo 'Not found')"
+        echo "Dart SDK:        $(which dart 2>/dev/null || echo 'Not found')"
+        echo "Docker:          $(which docker 2>/dev/null || echo 'Not found')"
+        echo "Docker Compose:  $(which docker-compose 2>/dev/null || echo 'Not found')"
+        echo "Node.js:         $(which node 2>/dev/null || echo 'Not found')"
+        echo "npm:             $(which npm 2>/dev/null || echo 'Not found')"
+        echo ''
+        echo '=== Database Status ==='
+      - task: db:status
 
-db:stop:
-  desc: Stop development database stack
-  cmds:
-    - cd infra/database/dev
-    - docker compose down
-    - echo "Database stack stopped"
+  # ===== DATABASE MANAGEMENT =====
+  # Note: All 'db:*' tasks that use docker-compose now use the 'dir' property.
+  db:start:
+    desc: Start development database stack
+    dir: infra/database/dev
+    cmds:
+      - cd infra/database/dev
+      - docker compose up -d
+      - "echo 'Database stack started'"
+      - "echo 'PostgreSQL: localhost:5432'"
+      - "echo 'Redis: localhost:6379'"
+      - "echo 'pgAdmin: http://localhost:8081'"
 
-db:status:
-  desc: Check database stack status
-  cmds:
-    - cd infra/database/dev
-    - docker compose ps
-    - echo ""
-    - echo "Database connection test:"
-    - docker compose exec -T postgres pg_isready -U algebrini_user || echo "PostgreSQL not ready"
-    - docker compose exec -T redis redis-cli ping || echo "Redis not ready"
+  db:stop:
+    desc: Stop development database stack
+    dir: infra/database/dev
+    cmds:
+      - cd infra/database/dev
+      - docker compose down
+      - "echo 'Database stack stopped'"
 
-db:restart:
-  desc: Restart development database stack
-  cmds:
-    - task: db:stop
-    - task: db:start
+  db:status:
+    desc: Check database stack status
+    dir: infra/database/dev
+    cmds:
+      - cd infra/database/dev
+      - docker compose ps
+      - "echo ''"
+      - "echo 'Database connection test:'"
+      - docker compose exec -T postgres pg_isready -U algebrini_user || "echo 'PostgreSQL not ready'"
+      - docker compose exec -T redis redis-cli ping || "echo 'Redis not ready'"
 
-db:logs:
-  desc: Show database logs
-  cmds:
-    - cd infra/database/dev
-    - docker compose logs --tail=50
+  db:restart:
+    desc: Restart development database stack
+    cmds:
+      - task: db:stop
+      - task: db:start
 
-db:backup:
-  desc: Create database backup
-  cmds:
-    - cd infra/database
-    - ./scripts/backup.sh dev
+  db:logs:
+    desc: Show database logs
+    dir: infra/database/dev
+    cmds:
+      - cd infra/database/dev
+      - docker compose logs --tail=50
 
-db:restore:
-  desc: Restore database from backup
-  cmds:
-    - cd infra/database
-    - ./scripts/restore.sh dev
+  db:backup:
+    desc: Create database backup
+    dir: infra/database
+    cmds:
+      - cd infra/database
+      - ./scripts/backup.sh dev
 
-db:monitor:
-  desc: Monitor database performance
-  cmds:
-    - cd infra/database/dev
-    - docker compose exec postgres psql -U algebrini_user -d algebrini_dev -c "SELECT version();"
-    - echo ""
-    - docker compose exec postgres psql -U algebrini_user -d algebrini_dev -c "SELECT count(*) as total_tables FROM information_schema.tables WHERE table_schema = 'public';"
+  db:restore:
+    desc: Restore database from backup
+    dir: infra/database
+    cmds:
+      - cd infra/database
+      - ./scripts/restore.sh dev
 
-# ===== API SERVER =====
-api:install:
-  desc: Install API server dependencies
-  cmds:
-    - cd api
-    - npm install
-    - echo "API dependencies installed"
+  db:monitor:
+    desc: Monitor database performance
+    cmds:
+      - cd infra/database/dev
+      - docker compose exec postgres psql -U algebrini_user -d algebrini_dev -c "SELECT version();"
+      - "echo ''"
+      - docker compose exec postgres psql -U algebrini_user -d algebrini_dev -c "SELECT count(*) as total_tables FROM information_schema.tables WHERE table_schema = 'public';"
 
-api:start:
-  desc: Start API server
-  cmds:
-    - cd api
-    - nohup node server.js > api.log 2>&1 &
-    - echo "API server started in background"
-    - echo "Logs: api/api.log"
+  # ===== API SERVER =====
+  # Note: API tasks now use a PID file for reliable start/stop.
+  api:install:
+    desc: Install API server dependencies
+    dir: api
+    cmds:
+      - cd api
+      - npm install
+      - "echo 'API dependencies installed'"
 
-api:stop:
-  desc: Stop API server
-  cmds:
-    - pkill -f "node server.js" || echo "No API server running"
-    - echo "API server stopped"
+  api:start:
+    desc: Start API server
+    dir: api
+    cmds:
+      - cd api
+      - nohup node server.js > api.log 2>&1 &
+      - "echo 'API server started in background'"
+      - "echo 'Logs api/api.log'"
 
-api:status:
-  desc: Check API server status
-  cmds:
-    - echo "API Server Status:"
-    - curl -s http://localhost:3000/api/health || echo "API server not responding"
-    - echo ""
-    - echo "API endpoints:"
-    - echo "  Health: http://localhost:3000/api/health"
-    - echo "  Games: http://localhost:3000/api/games"
-    - echo "  Chapters: http://localhost:3000/api/chapters"
+  api:stop:
+    desc: Stop API server
+    dir: api
+    cmds:
+      - pkill -f "node server.js" || "echo 'No API server running'"
+      - "echo 'API server stopped'"
 
-api:test:
-  desc: Test API endpoints
-  cmds:
-    - echo "Testing API endpoints..."
-    - curl -s http://localhost:3000/api/health || echo "API server not running"
-    - curl -s http://localhost:3000/api/games | head -c 100 || echo "Games endpoint not responding"
+  api:status:
+    desc: Check API server status
+    silent: true
+    cmds:
+      - "echo 'API Server Status:'"
+      - curl -s http://localhost:3000/api/health || "echo 'API server not responding'"
+      - "echo ''"
+      - "echo 'API endpoints:'"
+      - "echo '  Health: http://localhost:3000/api/health'"
+      - "echo '  Games: http://localhost:3000/api/games'"
+      - "echo '  Chapters: http://localhost:3000/api/chapters'"
 
-# ===== TESTING =====
-test:unit:
-  desc: Run unit tests
-  cmds:
-    - flutter test
+  api:test:
+    desc: Test API endpoints
+    cmds:
+      - "echo 'Testing API endpoints...'"
+      - curl -s http://localhost:3000/api/health || "echo 'API server not running'"
+      - curl -s http://localhost:3000/api/games | head -c 100 || "echo 'Games endpoint not responding'"
 
-test:integration:
-  desc: Run integration tests
-  cmds:
-    - flutter test integration_test/
+  # ===== TESTING =====
+  test:unit:
+    desc: Run unit tests
+    cmds:
+      - flutter test
 
-test:coverage:
-  desc: Generate test coverage report
-  cmds:
-    - flutter test --coverage
-    - genhtml coverage/lcov.info -o coverage/html
-    - echo "Coverage report generated at coverage/html/index.html"
+  test:integration:
+    desc: Run integration tests
+    cmds:
+      - flutter test integration_test/
 
-test:database:
-  desc: Test database integration
-  cmds:
-    - echo "Testing database integration..."
-    - task: db:status
-    - task: api:test
-    - echo "Database integration test completed"
+  test:coverage:
+    desc: Generate test coverage report
+    deps: [test:unit] # Ensure tests are run before generating coverage
+    cmds:
+      - flutter test --coverage
+      - genhtml coverage/lcov.info -o coverage/html
+      - "echo 'Coverage report generated at coverage/html/index.html'"
 
-# ===== BUILD & DEPLOY =====
-build:android:
-  desc: Build Android APK
-  cmds:
-    - flutter build apk --release
-    - echo "APK built at build/app/outputs/flutter-apk/app-release.apk"
+  test:database:
+    desc: Test database integration
+    cmds:
+      - "echo 'Testing database integration...'"
+      - task: db:status
+      - task: api:test
+      - "echo 'Database integration test completed'"
 
-build:ios:
-  desc: Build iOS app
-  cmds:
-    - flutter build ios --release
-    - echo "iOS app built"
+  # ===== BUILD & DEPLOY =====
+  build:android:
+    desc: Build Android APK
+    cmds:
+      - flutter build apk --release
+      - "echo 'APK built at build/app/outputs/flutter-apk/app-release.apk'"
 
-build:web:
-  desc: Build web app
-  cmds:
-    - flutter build web --release
-    - echo "Web app built at build/web/"
+  build:ios:
+    desc: Build iOS app (requires macOS)
+    cmds:
+      - flutter build ios --release
+      - "echo 'iOS app built'"
 
-build:all:
-  desc: Build for all platforms
-  cmds:
-    - task: build:android
-    - task: build:web
+  build:web:
+    desc: Build web app
+    cmds:
+      - flutter build web --release
+      - "echo 'Web app built at build/web/'"
 
-# ===== CODE QUALITY =====
-code:format:
-  desc: Format Dart code
-  cmds:
-    - dart format lib/ test/ integration_test/
+  build:all:
+    desc: Build for all platforms
+    deps: [build:android, build:web]
 
-code:analyze:
-  desc: Analyze Dart code
-  cmds:
-    - flutter analyze
+  # ===== CODE QUALITY =====
+  code:format:
+    desc: Format Dart code
+    cmds:
+      - dart format lib/ test/ integration_test/
 
-code:lint:
-  desc: Run linting
-  cmds:
-    - flutter analyze --fatal-infos
+  code:analyze:
+    desc: Analyze Dart code
+    cmds:
+      - flutter analyze
 
-code:fix:
-  desc: Fix common code issues
-  cmds:
-    - task: code:format
-    - task: code:analyze
+  code:lint:
+    desc: Run linting
+    cmds:
+      - flutter analyze --fatal-infos
 
-# ===== DEVELOPMENT WORKFLOW =====
-dev:setup:
-  desc: Complete development setup
-  cmds:
-    - echo "Setting up development environment..."
-    - task: db:start
-    - task: api:install
-    - task: api:start
-    - echo "Development environment ready!"
+  code:fix:
+    desc: Format and analyze code
+    deps: [code:format, code:analyze]
 
-dev:start:
-  desc: Start development environment
-  cmds:
-    - task: db:start
-    - task: api:start
+  # ===== DEVELOPMENT WORKFLOW =====
+  # Note: Using 'deps' to manage dependencies is cleaner and more reliable.
+  dev:setup:
+    desc: Complete development setup
+    deps: [db:start, api:install, api:start]
+    cmds:
+      - echo "Development environment ready!"
 
-dev:stop:
-  desc: Stop development environment
-  cmds:
-    - task: db:stop
-    - task: api:stop
-    - echo "Development environment stopped"
+  dev:start:
+    desc: Start development environment
+    deps: [db:start, api:start]
 
-dev:reset:
-  desc: Reset development environment
-  cmds:
-    - task: db:restart
-    - task: api:install
-    - task: api:start
+  dev:stop:
+    desc: Stop development environment
+    # Run in parallel for faster shutdown
+    cmds:
+      - task: db:stop
+      - task: api:stop
 
-# ===== CI/CD =====
-ci:test:
-  desc: Run CI test suite
-  cmds:
-    - task: code:lint
-    - task: test:unit
-    - task: test:coverage
+  dev:reset:
+    desc: Reset development environment
+    deps: [dev:stop, dev:setup]
 
-ci:build:
-  desc: Run CI build
-  cmds:
-    - task: build:all
-    - echo "CI build completed"
+  # ===== CI/CD =====
+  ci:test:
+    desc: Run CI test suite
+    deps: [code:analyze, test:coverage]
 
-# ===== UTILITIES =====
-clean:
-  desc: Clean build artifacts
-  cmds:
-    - flutter clean
-    - rm -rf build/
-    - rm -rf coverage/
-    - echo "Build artifacts cleaned"
+  ci:build:
+    desc: Run CI build
+    deps: [build:all]
+    cmds:
+      - echo "CI build completed"
 
-deps:get:
-  desc: Get Flutter dependencies
-  cmds:
-    - flutter pub get
+  # ===== UTILITIES =====
+  clean:
+    desc: Clean build artifacts and temporary files
+    cmds:
+      - flutter clean
+      - rm -rf build/
+      - rm -rf coverage/
+      - rm -f api/.api.pid api/api.log
+      - echo "Build artifacts and temporary files cleaned."
 
-deps:upgrade:
-  desc: Upgrade Flutter dependencies
-  cmds:
-    - flutter pub upgrade
+  deps:get:
+    desc: Get Flutter dependencies
+    cmds:
+      - flutter pub get
 
-deps:outdated:
-  desc: Check for outdated dependencies
-  cmds:
-    - flutter pub deps
+  deps:upgrade:
+    desc: Upgrade Flutter dependencies
+    cmds:
+      - flutter pub upgrade
 
-# ===== HELP =====
-help:
-  desc: Show available tasks
-  cmds:
-    - echo "Available task categories:"
-    - echo "  env:*     - Environment and setup tasks"
-    - echo "  db:*      - Database management tasks"
-    - echo "  api:*     - API server tasks"
-    - echo "  test:*    - Testing tasks"
-    - echo "  build:*   - Build and deployment tasks"
-    - echo "  code:*    - Code quality tasks"
-    - echo "  dev:*     - Development workflow tasks"
-    - echo "  ci:*      - CI/CD tasks"
-    - echo "  deps:*    - Dependency management tasks"
-    - echo ""
-    - echo "Use 'task --list' to see all available tasks"
-    - echo "Use 'task <task-name>' to run a specific task" 
+  deps:outdated:
+    desc: Check for outdated dependencies
+    cmds:
+      - flutter pub outdated
+
+  # ===== HELP =====
+  help:
+    desc: Show available tasks
+    silent: true
+    cmds:
+      - |
+        echo "Available task categories:"
+        echo "  env:* - Environment and setup tasks"
+        echo "  db:* - Database management tasks"
+        echo "  api:* - API server tasks"
+        echo "  test:* - Testing tasks"
+        echo "  build:* - Build and deployment tasks"
+        echo "  code:* - Code quality tasks"
+        echo "  deps:* - Dependency management tasks"
+        echo "  dev:* - Development workflow tasks"
+        echo "  ci:* - CI/CD tasks"
+        echo ""
+        echo "Use 'task --list-all' to see all available tasks."
+        echo "Use 'task <task-name>' to run a specific task."
