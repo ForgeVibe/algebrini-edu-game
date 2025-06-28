@@ -539,6 +539,12 @@ tasks:
     cmds:
       - docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development flutter pub outdated
 
+  deps:build-runner:
+    desc: Generate missing files with build_runner
+    deps: [docker:check-dev]
+    cmds:
+      - docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development flutter pub run build_runner build --delete-conflicting-outputs
+
   # ===== HELP =====
   help:
     desc: Show available tasks

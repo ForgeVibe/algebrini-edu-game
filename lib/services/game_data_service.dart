@@ -175,10 +175,11 @@ class GameDataService {
     final chapters = await getChapters();
     final nextIndex = currentChapter.orderIndex + 1;
 
-    return chapters.firstWhere(
-      (chapter) => chapter.orderIndex == nextIndex,
-      orElse: () => null,
-    );
+    try {
+      return chapters.firstWhere((chapter) => chapter.orderIndex == nextIndex);
+    } catch (_) {
+      return null;
+    }
   }
 
   // ===== REALMS =====
@@ -332,13 +333,15 @@ class GameDataService {
   /// Get user's total score for a game
   Future<int> getUserTotalScore(String userId, String gameId) async {
     final progress = await getUserProgress(userId, gameId);
-    return progress.fold(0, (sum, p) => sum + p.score);
+    if (progress.isEmpty) return 0;
+    return progress.map((p) => p.score).reduce((a, b) => a + b);
   }
 
   /// Get user's total play time for a game
   Future<int> getUserTotalPlayTime(String userId, String gameId) async {
     final progress = await getUserProgress(userId, gameId);
-    return progress.fold(0, (sum, p) => sum + (p.timeSeconds ?? 0));
+    if (progress.isEmpty) return 0;
+    return progress.map((p) => p.timeSeconds ?? 0).reduce((a, b) => a + b);
   }
 
   /// Close database connection

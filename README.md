@@ -269,6 +269,143 @@ task test
 task build:web
 ```
 
+## 🔄 Development Workflow
+
+### **Initial Setup (First Time)**
+```bash
+# 1. Complete development environment setup
+task dev:setup
+
+# 2. Start development server
+task dev:start
+
+# 3. Access the app at http://localhost:5052
+```
+
+### **Daily Development Workflow**
+```bash
+# Start development server (background)
+task dev:start
+
+# View logs to monitor the app
+task dev:logs
+
+# Stop development server when done
+task dev:stop
+```
+
+### **When Code Changes Don't Reflect**
+If you make code changes but they don't appear in the running app:
+
+```bash
+# 1. Stop the development server
+task dev:stop
+
+# 2. Rebuild the Docker image (if needed)
+task docker:build-dev
+
+# 3. Restart the development server
+task dev:start
+
+# 4. Check logs for any errors
+task dev:logs
+```
+
+### **Complete Reset (When Things Go Wrong)**
+If you encounter persistent issues or want a completely fresh start:
+
+```bash
+# 1. Stop all containers
+task dev:stop
+
+# 2. Clean Docker system
+docker system prune -f
+
+# 3. Remove development image
+docker rmi algebrini-flutter:development
+
+# 4. Rebuild everything from scratch
+task docker:build-dev
+
+# 5. Regenerate build_runner outputs
+task deps:build-runner
+
+# 6. Start fresh development server
+task dev:start
+```
+
+### **Code Quality Workflow**
+```bash
+# Format and analyze code
+task code:fix
+
+# Run tests
+task test
+
+# Regenerate generated files (if needed)
+task deps:build-runner
+```
+
+### **Production Build Workflow**
+```bash
+# Build for web
+task build:web
+
+# Serve production web app
+task serve-web
+```
+
+### **Troubleshooting Common Issues**
+
+#### **App Hangs on Loading Screen**
+```bash
+# Check container logs
+task dev:logs
+
+# If there are compilation errors, fix them and restart
+task dev:stop
+task dev:start
+```
+
+#### **Code Changes Not Reflecting**
+```bash
+# Force rebuild and restart
+task dev:stop
+task docker:build-dev
+task dev:start
+```
+
+#### **Build Errors**
+```bash
+# Clean and rebuild
+task dev:stop
+docker system prune -f
+task docker:build-dev
+task deps:build-runner
+task dev:start
+```
+
+#### **Port Already in Use**
+```bash
+# Check what's using the port
+lsof -i :5052
+
+# Stop conflicting processes or use different port
+# (Port configuration is in Taskfile.yml)
+```
+
+### **Environment Status**
+```bash
+# Check if development environment is running
+task env:status
+
+# View all running containers
+docker ps
+
+# Check Docker image status
+docker images | grep algebrini
+```
+
 ## 🐳 Docker Development (Updated)
 
 ### **Quick Docker Setup (Recommended)**
