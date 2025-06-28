@@ -69,24 +69,18 @@ tasks:
       - task: env:dev
 
   env:status:
-    desc: Show development environment status
+    desc: Check development environment status
     cmds:
-      - |
-        echo "Algebrini Development Environment Status"
-        echo "========================================"
-        echo "Docker containers:"
-        docker ps --filter "ancestor={{.IMAGE_NAME}}:development" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-        echo ""
-        echo "Available ports:"
-        echo "  Development: http://localhost:5052"
-        echo "  Production:  http://localhost:5053"
-        echo ""
-        echo "Useful commands:"
-        echo "  task env:dev       - Start development server in background"
-        echo "  task env:logs      - View development logs"
-        echo "  task env:stop      - Stop development server"
-        echo "  task env:restart   - Restart development server"
-        echo "  task env:status    - Show environment status"
+      - echo "=== Environment Status ==="
+      - echo "Flutter SDK: $(which flutter 2>/dev/null || echo 'Not found')"
+      - echo "Dart SDK: $(which dart 2>/dev/null || echo 'Not found')"
+      - echo "Node.js: $(which node 2>/dev/null || echo 'Not found')"
+      - echo "npm: $(which npm 2>/dev/null || echo 'Not found')"
+      - echo "Docker: $(which docker 2>/dev/null || echo 'Not found')"
+      - echo "Docker Compose: $(which docker-compose 2>/dev/null || echo 'Not found')"
+      - echo ""
+      - echo "=== Database Status ==="
+      - task: db:status
 
   env:download-flutter:
     desc: Download Flutter SDK if not present
@@ -227,7 +221,7 @@ tasks:
         ./restore.sh {{.CLI_ARGS}}
 
   db:monitor:
-    desc: Open database monitoring tools
+    desc: Monitor database performance
     cmds:
       - |
         echo "Opening database monitoring tools..."
@@ -274,6 +268,19 @@ tasks:
         echo "Building test image..."
         docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target testing -t {{.IMAGE_NAME}}:testing -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
+  test:unit:
+    desc: Run unit tests
+    cmds:
+      - flutter test
+
+  test:database:
+    desc: Test database integration
+    cmds:
+      - echo "Testing database integration..."
+      - task: db:status
+      - task: api:test
+      - echo "Database integration test completed"
+
   # ============================================================================
   # BUILD TASKS
   # ============================================================================
@@ -314,6 +321,12 @@ tasks:
         echo "Building production image..."
         docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target production -t {{.IMAGE_NAME}}:production -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
+  build:all:
+    desc: Build for all platforms
+    cmds:
+      - task: build:android
+      - task: build:web
+
   # ============================================================================
   # DEPLOYMENT TASKS
   # ============================================================================
@@ -346,6 +359,17 @@ tasks:
         echo "Analyzing code..."
         docker run --rm {{.IMAGE_NAME}}:development flutter analyze
 
+  code:lint:
+    desc: Run linting
+    cmds:
+      - flutter analyze --fatal-infos
+
+  code:fix:
+    desc: Fix common code issues
+    cmds:
+      - task: code:format
+      - task: code:analyze
+
   # ============================================================================
   # CI/CD TASKS
   # ============================================================================
@@ -355,6 +379,19 @@ tasks:
     deps: [test:run, build:web, build:android]
     cmds:
       - echo "CI/CD pipeline completed successfully"
+
+  ci:test:
+    desc: Run CI test suite
+    cmds:
+      - task: code:lint
+      - task: test:unit
+      - task: test:coverage
+
+  ci:build:
+    desc: Run CI build
+    cmds:
+      - task: build:all
+      - echo "CI build completed"
 
   # ============================================================================
   # UTILITY TASKS
@@ -370,7 +407,7 @@ tasks:
         echo "Environment Commands:"
         echo "  task env:dev       - Start development server in background"
         echo "  task env:dev-fg    - Start development server (foreground)"
-        echo "  task env:logs      - View development server logs"
+        echo "  task env:logs      - View development logs"
         echo "  task env:stop      - Stop development server"
         echo "  task env:restart   - Restart development server"
         echo "  task env:status    - Show environment status"
@@ -411,3 +448,102 @@ tasks:
     desc: Show help by default
     cmds:
       - task: help 
+
+# ===== API SERVER =====
+api:install:
+  desc: Install API server dependencies
+  cmds:
+    - cd api
+    - npm install
+    - echo "API dependencies installed"
+
+api:start:
+  desc: Start API server
+  cmds:
+    - cd api
+    - npm start
+
+api:dev:
+  desc: Start API server in development mode
+  cmds:
+    - cd api
+    - npm run dev
+
+api:test:
+  desc: Test API endpoints
+  cmds:
+    - echo "Testing API endpoints..."
+    - curl -s http://localhost:3000/api/health || echo "API server not running"
+    - curl -s http://localhost:3000/api/games | head -c 100 || echo "Games endpoint not responding"
+
+# ===== DEVELOPMENT WORKFLOW =====
+dev:setup:
+  desc: Complete development setup
+  cmds:
+    - echo "Setting up development environment..."
+    - task: db:start
+    - task: api:install
+    - task: api:start
+    - echo "Development environment ready!"
+
+dev:start:
+  desc: Start development environment
+  cmds:
+    - task: db:start
+    - task: api:dev
+
+dev:stop:
+  desc: Stop development environment
+  cmds:
+    - task: db:stop
+    - echo "Development environment stopped"
+
+dev:reset:
+  desc: Reset development environment
+  cmds:
+    - task: db:restart
+    - task: api:install
+    - task: api:start
+
+# ===== DEPENDENCY MANAGEMENT =====
+deps:get:
+  desc: Get Flutter dependencies
+  cmds:
+    - flutter pub get
+
+deps:upgrade:
+  desc: Upgrade Flutter dependencies
+  cmds:
+    - flutter pub upgrade
+
+deps:outdated:
+  desc: Check for outdated dependencies
+  cmds:
+    - flutter pub deps
+
+# ===== CLEANUP =====
+clean:
+  desc: Clean build artifacts
+  cmds:
+    - flutter clean
+    - rm -rf build/
+    - rm -rf coverage/
+    - echo "Build artifacts cleaned"
+
+  clean:
+    desc: Clean Docker images and containers
+    cmds:
+      - |
+        echo "Cleaning up Docker resources..."
+        task: env:stop-all
+        docker system prune -f
+        docker rmi {{.IMAGE_NAME}}:development {{.IMAGE_NAME}}:testing {{.IMAGE_NAME}}:web-build {{.IMAGE_NAME}}:android-build {{.IMAGE_NAME}}:production 2>/dev/null || true
+        echo "Cleanup completed"
+
+  clean-all:
+    desc: Clean everything including Flutter SDK
+    cmds:
+      - |
+        task: env:clean
+        rm -f {{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}
+        echo "Complete cleanup finished" 

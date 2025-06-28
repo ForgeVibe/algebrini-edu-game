@@ -12,13 +12,22 @@ import 'screens/challenges_screen.dart';
 import 'screens/world_map_screen.dart';
 import 'services/font_size_provider.dart';
 import 'services/theme_provider.dart';
+import 'services/game_data_service.dart';
 
-void main() {
-  runApp(const AlgebriniApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize database service
+  final gameDataService = GameDataService();
+  await gameDataService.initialize();
+  
+  runApp(AlgebriniApp(gameDataService: gameDataService));
 }
 
 class AlgebriniApp extends StatelessWidget {
-  const AlgebriniApp({super.key});
+  final GameDataService gameDataService;
+  
+  const AlgebriniApp({super.key, required this.gameDataService});
 
   @override
   Widget build(BuildContext context) {
@@ -26,6 +35,7 @@ class AlgebriniApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => FontSizeProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        Provider<GameDataService>.value(value: gameDataService),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

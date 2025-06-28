@@ -15,12 +15,20 @@ dependencies:
   shared_preferences: ^2.2.2
   google_fonts: ^6.1.0
   flutter_tts: ^3.8.5
+  # Database and API dependencies
+  http: ^1.1.0
+  postgres: ^2.6.3
+  json_annotation: ^4.8.1
+  uuid: ^4.2.1
 dev_dependencies:
   flutter_test:
     sdk: flutter
   integration_test:
     sdk: flutter
   flutter_lints: ^2.0.0
+  # Code generation for JSON serialization
+  build_runner: ^2.4.7
+  json_serializable: ^6.7.1
 flutter:
   uses-material-design: true
   generate: true
