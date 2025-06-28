@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:algebrini_edu_game/models/minigame.dart';
 import 'package:algebrini_edu_game/services/level_progression_service.dart';
+import 'package:algebrini_edu_game/services/game_data_service.dart';
+import 'package:algebrini_edu_game/models/database_models.dart';
 
 class SimpleEquationsGame implements MiniGame {
   int _currentIndex = 0;
@@ -9,6 +11,12 @@ class SimpleEquationsGame implements MiniGame {
   late int _answer;
   late String _hint;
   late String _equationType;
+  
+  // Database support
+  GameDataService? _gameDataService;
+  String? _currentLevelId;
+  List<Challenge>? _currentChallenges;
+  bool _useDatabase = false;
 
   // Level-specific equations with increasing difficulty
   static const Map<int, List<Map<String, dynamic>>> _levelEquations = {
@@ -129,17 +137,75 @@ class SimpleEquationsGame implements MiniGame {
     ],
   };
 
+  // Constructor for backward compatibility (uses hardcoded data)
   SimpleEquationsGame() {
+    _useDatabase = false;
     _loadChallenge();
   }
 
-  void _loadChallenge() {
+  // Constructor for database-driven data
+  SimpleEquationsGame.withDatabase(GameDataService gameDataService) {
+    _gameDataService = gameDataService;
+    _useDatabase = true;
+    _loadChallenge();
+  }
+
+  void _loadChallenge() async {
+    if (_useDatabase && _gameDataService != null) {
+      await _loadChallengeFromDatabase();
+    } else {
+      _loadChallengeFromHardcoded();
+    }
+  }
+
+  void _loadChallengeFromHardcoded() {
     final levelEquations = _levelEquations[_currentLevel] ?? _levelEquations[1]!;
     final challengeData = levelEquations[_currentIndex % levelEquations.length];
     _currentEquation = challengeData['equation'];
     _hint = challengeData['hint'];
     _equationType = challengeData['type'];
     _answer = challengeData['answer'];
+  }
+
+  Future<void> _loadChallengeFromDatabase() async {
+    try {
+      // Get levels for the game
+      final levels = await _gameDataService!.getLevels('simple-equations');
+      if (levels.isEmpty) {
+        // Fallback to hardcoded data
+        _useDatabase = false;
+        _loadChallengeFromHardcoded();
+        return;
+      }
+
+      // Find the current level
+      final currentLevelData = levels.firstWhere(
+        (level) => level.levelNumber == _currentLevel,
+        orElse: () => levels.first,
+      );
+      _currentLevelId = currentLevelData.id;
+
+      // Get challenges for this level
+      _currentChallenges = await _gameDataService!.getChallenges(_currentLevelId!);
+      if (_currentChallenges!.isEmpty) {
+        // Fallback to hardcoded data
+        _useDatabase = false;
+        _loadChallengeFromHardcoded();
+        return;
+      }
+
+      // Get current challenge
+      final challenge = _currentChallenges![_currentIndex % _currentChallenges!.length];
+      _currentEquation = challenge.question;
+      _hint = challenge.hint ?? 'Think about the equation carefully.';
+      _answer = int.tryParse(challenge.answer) ?? 0;
+      _equationType = 'Database';
+    } catch (e) {
+      print('Error loading challenge from database: $e');
+      // Fallback to hardcoded data
+      _useDatabase = false;
+      _loadChallengeFromHardcoded();
+    }
   }
 
   @override
@@ -162,6 +228,7 @@ class SimpleEquationsGame implements MiniGame {
         'equation': _currentEquation,
         'level': _currentLevel,
         'type': _equationType,
+        'useDatabase': _useDatabase,
       }
     );
   }
@@ -197,6 +264,30 @@ class SimpleEquationsGame implements MiniGame {
   }
 
   int get currentLevel => _currentLevel;
+
+  // Database-specific methods
+  bool get useDatabase => _useDatabase;
+  
+  String? get currentLevelId => _currentLevelId;
+  
+  List<Challenge>? get currentChallenges => _currentChallenges;
+
+  // Save progress to database
+  Future<bool> saveProgress(String userId, int score, bool completed, {int? timeSeconds, int attempts = 1}) async {
+    if (!_useDatabase || _gameDataService == null || _currentLevelId == null) {
+      return false;
+    }
+
+    return await _gameDataService!.saveUserProgress(
+      userId: userId,
+      gameId: id,
+      levelId: _currentLevelId!,
+      score: score,
+      completed: completed,
+      timeSeconds: timeSeconds,
+      attempts: attempts,
+    );
+  }
 
   // Get available levels for this game
   static List<int> getAvailableLevels() {
