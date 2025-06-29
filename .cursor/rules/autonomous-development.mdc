@@ -1,4 +1,21 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
 # Autonomous Development Rules
+
+## Overview
+
+This file contains rules for autonomous problem-solving and systematic development approaches. These rules ensure that development tasks are approached methodically and efficiently.
+
+**🔗 Cross-References**: 
+- **Infrastructure Issues**: See `infrastructure-management.mdc`
+- **Testing Strategy**: See `testing-and-quality.mdc`
+- **Performance Concerns**: See `scalability-and-performance.mdc`
+- **Communication**: See `communication-and-collaboration.mdc`
+
+**🚀 Quick Start**: For complete navigation, see `decision-tree.mdc`
 
 ## Core Principles
 
@@ -7,6 +24,7 @@
 - When encountering errors, investigate thoroughly using logs, status checks, and debugging tools
 - Don't just fix symptoms - solve the underlying problems
 - If a solution doesn't work, try alternative approaches systematically
+- **See**: `main.mdc` → "Autonomous Problem Solving"
 
 ### 2. Systematic Approach
 - Start with understanding the current state (status checks, logs, environment)
@@ -14,18 +32,21 @@
 - Plan the solution with multiple steps if needed
 - Execute step-by-step, verifying each step
 - Test the final result to ensure it works
+- **See**: `testing-and-quality.mdc` → "Testing Strategy"
 
 ### 3. Infrastructure-First Thinking
 - Always consider the infrastructure implications of changes
 - Database connections, Docker networks, environment variables, and service dependencies
 - When adding features, ensure the infrastructure can support them
 - Think about scalability and performance from the start
+- **See**: `infrastructure-management.mdc` → "Service Integration"
 
 ### 4. Documentation-Driven Development
 - Document all major features and configurations
 - Create comprehensive guides for complex systems
 - Update README files when adding new functionality
 - Provide both quick reference and detailed documentation
+- **See**: `documentation-standards.mdc` → "Documentation Strategy"
 
 ## Development Workflow
 
@@ -36,24 +57,28 @@ task env:status
 docker ps
 git status
 ```
+**See**: `infrastructure-management.mdc` → "Environment Management"
 
 ### 2. Problem Diagnosis
 - Check logs: `docker logs <container_name>`
 - Verify connectivity: `curl`, `ping`, network tests
 - Check configuration: environment variables, config files
 - Test endpoints: health checks, API calls
+**See**: `infrastructure-management.mdc` → "Service Integration"
 
 ### 3. Solution Implementation
 - Make minimal, focused changes
 - Test each change immediately
 - Use version control for all changes
 - Document the solution
+**See**: `testing-and-quality.mdc` → "Testing Strategy"
 
 ### 4. Validation
 - Verify the solution works end-to-end
 - Run relevant tests
 - Check that no regressions were introduced
 - Update documentation if needed
+**See**: `testing-and-quality.mdc` → "End-to-End Testing"
 
 ## Specific Patterns
 
@@ -63,6 +88,7 @@ git status
 3. Check network connectivity between services
 4. Review database logs for errors
 5. Test connection from application
+**See**: `infrastructure-management.mdc` → "Database Management"
 
 ### Docker Issues
 1. Check container status: `docker ps`
@@ -70,6 +96,7 @@ git status
 3. Check for port conflicts
 4. Review Docker Compose configuration
 5. Restart services if needed
+**See**: `infrastructure-management.mdc` → "Docker Management"
 
 ### API Issues
 1. Check API server status: `task api:status`
@@ -77,6 +104,7 @@ git status
 3. Check environment variables
 4. Review API logs
 5. Test endpoints directly
+**See**: `infrastructure-management.mdc` → "API Management"
 
 ### Configuration Management
 1. Use environment variables for configuration
@@ -84,6 +112,7 @@ git status
 3. Create separate configs for different environments
 4. Document all configuration options
 5. Provide easy switching between configurations
+**See**: `infrastructure-management.mdc` → "Configuration Management"
 
 ## Communication Style
 
@@ -92,18 +121,21 @@ git status
 - Explain the problem and your approach
 - Show progress with specific steps
 - Confirm when tasks are completed
+**See**: `communication-and-collaboration.mdc` → "Status Reporting"
 
 ### 2. Proactive Suggestions
 - Suggest improvements when you see opportunities
 - Recommend best practices
 - Point out potential issues before they become problems
 - Offer alternative approaches when appropriate
+**See**: `communication-and-collaboration.mdc` → "Proactive Communication"
 
 ### 3. Educational Approach
 - Explain why you're making certain decisions
 - Share knowledge about technologies and patterns
 - Help the user understand the system better
 - Provide context for technical decisions
+**See**: `communication-and-collaboration.mdc` → "Educational Communication"
 
 ## Error Handling
 
@@ -112,18 +144,21 @@ git status
 - Don't let one failure stop the entire process
 - Provide clear error messages
 - Suggest next steps when errors occur
+**See**: `infrastructure-management.mdc` → "Recovery Procedures"
 
 ### 2. Recovery Procedures
 - Know how to reset environments
 - Have procedures for common failures
 - Document recovery steps
 - Test recovery procedures
+**See**: `infrastructure-management.mdc` → "Recovery Procedures"
 
 ### 3. Learning from Failures
 - Analyze why failures occurred
 - Implement preventive measures
 - Update documentation with lessons learned
 - Improve processes based on failures
+**See**: `main.mdc` → "Learning from Failures"
 
 ## Quality Assurance
 
@@ -132,18 +167,21 @@ git status
 - Run relevant test suites
 - Test both happy path and error scenarios
 - Verify integration points
+**See**: `testing-and-quality.mdc` → "Testing Strategy"
 
 ### 2. Code Quality
 - Follow established patterns and conventions
 - Write clean, maintainable code
 - Add appropriate comments and documentation
 - Use consistent formatting and style
+**See**: `testing-and-quality.mdc` → "Code Quality"
 
 ### 3. Security
 - Never expose sensitive information in logs or output
 - Use secure defaults
 - Validate inputs and configurations
 - Follow security best practices
+**See**: `infrastructure-management.mdc` → "Security Considerations"
 
 ## Scalability Considerations
 
@@ -152,15 +190,18 @@ git status
 - Test with realistic load when possible
 - Monitor resource usage
 - Optimize bottlenecks
+**See**: `scalability-and-performance.mdc` → "Performance Optimization"
 
 ### 2. Maintainability
 - Write code that's easy to understand and modify
 - Use clear naming conventions
 - Structure code logically
 - Minimize dependencies
+**See**: `testing-and-quality.mdc` → "Code Quality"
 
 ### 3. Extensibility
 - Design for future growth
 - Use configuration over hardcoding
 - Create modular, reusable components
 - Plan for different deployment scenarios
+**See**: `scalability-and-performance.mdc` → "Scalability Principles"

@@ -1,8 +1,15 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
 # Algebrini Development Rules
 
 ## Overview
 
 This file contains the main rules for autonomous development of the Algebrini educational game project. These rules are based on our comprehensive development experience and ensure consistent, high-quality development practices.
+
+**🚀 START HERE** → For quick navigation, see `decision-tree.mdc` for the complete interconnected system.
 
 ## Core Principles
 
@@ -11,24 +18,78 @@ This file contains the main rules for autonomous development of the Algebrini ed
 - Use systematic debugging approaches (logs, status checks, network tests)
 - Don't just fix symptoms - solve root causes
 - Try alternative approaches when initial solutions don't work
+- **See**: `autonomous-development.mdc` → "Systematic Problem Solving"
 
 ### 2. Infrastructure-First Thinking
 - Consider infrastructure implications of all changes
 - Think about scalability and performance from the start
 - Ensure proper service dependencies and networking
 - Plan for both development and production environments
+- **See**: `infrastructure-management.mdc` → "Service Integration"
 
 ### 3. Documentation-Driven Development
 - Document all major features and configurations
 - Provide both quick reference and detailed guides
 - Update documentation with code changes
 - Include examples and troubleshooting information
+- **See**: `documentation-standards.mdc` → "Documentation Strategy"
 
 ### 4. Quality and Testing
 - Implement comprehensive testing strategies
 - Ensure code quality and maintainability
 - Test both success and failure scenarios
 - Validate solutions end-to-end
+- **See**: `testing-and-quality.mdc` → "Testing Strategy"
+
+## Rule Categories
+
+### 1. Autonomous Development
+**See**: `autonomous-development.mdc`
+- Proactive problem solving approaches
+- Systematic development workflows
+- Infrastructure considerations
+- Error handling and recovery
+- **Cross-references**: `infrastructure-management.mdc`, `testing-and-quality.mdc`
+
+### 2. Infrastructure Management
+**See**: `infrastructure-management.mdc`
+- Docker and container management
+- Database and service configuration
+- Load configuration systems
+- Monitoring and observability
+- **Cross-references**: `scalability-and-performance.mdc`, `autonomous-development.mdc`
+
+### 3. Testing and Quality
+**See**: `testing-and-quality.mdc`
+- Comprehensive testing strategies
+- Quality assurance processes
+- Performance testing approaches
+- Continuous integration practices
+- **Cross-references**: `autonomous-development.mdc`, `scalability-and-performance.mdc`
+
+### 4. Documentation Standards
+**See**: `documentation-standards.mdc`
+- Documentation strategies and organization
+- Technical and user documentation
+- Code documentation practices
+- Documentation maintenance
+- **Cross-references**: `communication-and-collaboration.mdc`
+
+### 5. Communication and Collaboration
+**See**: `communication-and-collaboration.mdc`
+- Clear communication practices
+- Status reporting and updates
+- Problem-solving communication
+- User guidance and support
+- **Cross-references**: `main.mdc`, `documentation-standards.mdc`
+
+### 6. Scalability and Performance
+**See**: `scalability-and-performance.mdc`
+- Scalability principles and strategies
+- Performance optimization
+- Load configuration management
+- Resource optimization
+- **Cross-references**: `infrastructure-management.mdc`, `testing-and-quality.mdc`
 
 ## Development Workflow
 
@@ -39,24 +100,28 @@ task env:status
 docker ps
 git status
 ```
+**See**: `autonomous-development.mdc` → "Environment Assessment"
 
 ### 2. Problem Diagnosis
 - Check logs and error messages
 - Verify service connectivity
 - Test endpoints and configurations
 - Identify root causes
+**See**: `autonomous-development.mdc` → "Problem Diagnosis" + `infrastructure-management.mdc` → "Service Integration"
 
 ### 3. Solution Implementation
 - Plan solution with multiple steps if needed
 - Implement changes systematically
 - Test each step
 - Document the solution
+**See**: `autonomous-development.mdc` → "Systematic Approach" + `testing-and-quality.mdc` → "Testing Strategy"
 
 ### 4. Validation and Testing
 - Verify end-to-end functionality
 - Run relevant tests
 - Check for regressions
 - Update documentation
+**See**: `testing-and-quality.mdc` → "End-to-End Testing" + `documentation-standards.mdc` → "Documentation Updates"
 
 ## Key Commands
 
@@ -67,6 +132,7 @@ task dev:start      # Start development environment
 task dev:stop       # Stop development environment
 task env:status     # Check environment status
 ```
+**See**: `infrastructure-management.mdc` → "Environment Management"
 
 ### Load Configuration
 ```bash
@@ -74,6 +140,7 @@ task load:standard  # Switch to standard configuration
 task load:high      # Switch to high-load configuration
 task load:status    # Check current configuration
 ```
+**See**: `scalability-and-performance.mdc` → "Load Configuration"
 
 ### Database Management
 ```bash
@@ -82,6 +149,7 @@ task db:status      # Check database status
 task db:backup      # Create database backup
 task db:restore     # Restore database
 ```
+**See**: `infrastructure-management.mdc` → "Database Management"
 
 ### Testing
 ```bash
@@ -90,6 +158,7 @@ task test:unit      # Run unit tests
 task test:integration # Run integration tests
 task test:coverage  # Generate coverage report
 ```
+**See**: `testing-and-quality.mdc` → "Testing Commands"
 
 ## Best Practices
 
@@ -98,30 +167,35 @@ task test:coverage  # Generate coverage report
 - Check service health and connectivity
 - Review recent changes and logs
 - Understand the problem context
+**See**: `autonomous-development.mdc` → "Environment Assessment"
 
 ### 2. Implement Solutions Systematically
 - Break complex problems into manageable steps
 - Test each step before proceeding
 - Document the approach and reasoning
 - Provide clear status updates
+**See**: `autonomous-development.mdc` → "Systematic Approach"
 
 ### 3. Consider Scalability
 - Think about performance implications
 - Plan for different load scenarios
 - Implement configuration-driven scaling
 - Document scaling strategies
+**See**: `scalability-and-performance.mdc` → "Scalability Principles"
 
 ### 4. Maintain Quality
 - Write clean, maintainable code
 - Implement comprehensive testing
 - Follow established patterns and conventions
 - Document all changes and decisions
+**See**: `testing-and-quality.mdc` → "Quality Assurance"
 
 ### 5. Communicate Effectively
 - Provide clear status updates
 - Explain technical decisions
 - Offer educational context
 - Suggest improvements proactively
+**See**: `communication-and-collaboration.mdc` → "Communication Practices"
 
 ## Error Handling
 
@@ -130,18 +204,21 @@ task test:coverage  # Generate coverage report
 - Verify service status
 - Test connectivity
 - Review configuration
+**See**: `autonomous-development.mdc` → "Problem Diagnosis"
 
 ### 2. Recovery Procedures
 - Know how to reset environments
 - Have procedures for common failures
 - Document recovery steps
 - Test recovery procedures
+**See**: `infrastructure-management.mdc` → "Recovery Procedures"
 
 ### 3. Learning from Failures
 - Analyze root causes
 - Implement preventive measures
 - Update documentation
 - Improve processes
+**See**: `autonomous-development.mdc` → "Learning from Failures"
 
 ## Documentation Requirements
 
@@ -150,18 +227,31 @@ task test:coverage  # Generate coverage report
 - Provide usage examples
 - Include configuration options
 - Add troubleshooting information
+**See**: `documentation-standards.mdc` → "Feature Documentation"
 
 ### 2. Technical Documentation
 - Document architecture decisions
 - Explain configuration options
-- Provide API documentation
-- Include performance characteristics
+- Provide troubleshooting guides
+- Include performance considerations
+**See**: `documentation-standards.mdc` → "Technical Documentation"
 
-### 3. User Documentation
-- Provide clear user guides
-- Include step-by-step instructions
-- Add troubleshooting guides
-- Maintain FAQ sections
+## Quick Reference
+
+### **Problem-Specific Navigation**
+- **Database Issues**: `autonomous-development.mdc` → `infrastructure-management.mdc` → `scalability-and-performance.mdc`
+- **API Issues**: `autonomous-development.mdc` → `infrastructure-management.mdc` → `scalability-and-performance.mdc`
+- **Performance Issues**: `scalability-and-performance.mdc` → `infrastructure-management.mdc` → `testing-and-quality.mdc`
+- **Testing Issues**: `testing-and-quality.mdc` → `autonomous-development.mdc` → `infrastructure-management.mdc`
+- **Documentation**: `documentation-standards.mdc` → `communication-and-collaboration.mdc`
+
+### **Workflow Navigation**
+- **Setup**: `main.mdc` → `infrastructure-management.mdc`
+- **Development**: `autonomous-development.mdc` → `testing-and-quality.mdc`
+- **Scaling**: `scalability-and-performance.mdc` → `infrastructure-management.mdc`
+- **Communication**: `communication-and-collaboration.mdc` → `documentation-standards.mdc`
+
+**For complete interconnected navigation, see `decision-tree.mdc`**
 
 ## Quality Standards
 
