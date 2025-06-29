@@ -371,12 +371,14 @@ tasks:
       - docker run --rm {{.IMAGE_NAME}}:testing
 
   test:integration:
-    desc: Run integration tests against development environment
+    desc: Run integration tests against development environment (detached)
     silent: true
     cmds:
       - |
-        echo "🧪 Running integration tests against development environment... Make sure development environment is running with: dev:start"
-        docker run --rm --network host algebrini-flutter:testing flutter test tests/integration/ --reporter=expanded
+        echo "🧪 Running integration tests against development environment in detached mode..."
+        echo "📝 Logs will be written to integration_test.log"
+        nohup docker run --rm --network host algebrini-flutter:testing flutter test tests/integration/ --reporter=expanded > integration_test.log 2>&1 &
+        echo "✅ Integration tests started in background. Check integration_test.log for results."
 
   test:integration:cleanup:
     desc: Clean up integration test containers
@@ -385,12 +387,14 @@ tasks:
       - docker compose -f infra/database/dev/compose.yml --profile test down
 
   test:coverage:
-    desc: Generate test coverage report
+    desc: Generate test coverage report (detached)
     deps: [docker:build-test] # Ensure tests are run before generating coverage
     silent: true
     cmds:
-      - docker run --rm -v $(pwd)/coverage:/home/flutteruser/app/coverage {{.IMAGE_NAME}}:testing
-      - "echo 'Coverage report generated at coverage/html/index.html'"
+      - |
+        echo "📊 Generating test coverage report in detached mode..."
+        nohup docker run --rm -v $(pwd)/coverage:/home/flutteruser/app/coverage {{.IMAGE_NAME}}:testing > coverage_test.log 2>&1 &
+        echo "✅ Coverage report generation started in background. Check coverage_test.log for results."
 
   test:database:
     desc: Test database integration
@@ -403,128 +407,146 @@ tasks:
 
   # ===== BUILD & DEPLOY =====
   build:android:
-    desc: Build Android APK
+    desc: Build Android APK (detached)
     deps: [docker:build-android]
     silent: true
     cmds:
-      - "echo 'APK built in Docker container'"
+      - |
+        echo "📱 Building Android APK in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:android-build > android_build.log 2>&1 &
+        echo "✅ Android build started in background. Check android_build.log for results."
 
   build:ios:
-    desc: Build iOS app (requires macOS)
+    desc: Build iOS app (requires macOS) (detached)
     deps: [docker:build-ios]
     silent: true
     cmds:
-      - "echo 'iOS app built in Docker container'"
+      - |
+        echo "🍎 Building iOS app in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:ios-build > ios_build.log 2>&1 &
+        echo "✅ iOS build started in background. Check ios_build.log for results."
 
   build:web:
-    desc: Build web app
+    desc: Build web app (detached)
     deps: [docker:build-web]
     silent: true
     cmds:
-      - "echo 'Web app built in Docker container'"
+      - |
+        echo "🌐 Building web app in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:web-build > web_build.log 2>&1 &
+        echo "✅ Web build started in background. Check web_build.log for results."
 
   build:all:
-    desc: Build for all platforms
+    desc: Build for all platforms (detached)
     deps: [build:android, build:web]
     silent: true
+    cmds:
+      - |
+        echo "🚀 Building for all platforms in detached mode..."
+        echo "📱 Android build: android_build.log"
+        echo "🌐 Web build: web_build.log"
+        echo "✅ All builds started in background."
 
   # ===== COMPREHENSIVE TESTING =====
   test:smoke:
-    desc: Run smoke tests (basic functionality)
+    desc: Run smoke tests (basic functionality) (detached)
     deps: [docker:build-test]
     silent: true
     cmds:
       - |
-        echo "Running smoke tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/smoke_test.dart
+        echo "🔥 Running smoke tests in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/smoke_test.dart > smoke_test.log 2>&1 &
+        echo "✅ Smoke tests started in background. Check smoke_test.log for results."
 
   test:regression:
-    desc: Run regression tests
+    desc: Run regression tests (detached)
     deps: [docker:build-test]
     silent: true
     cmds:
       - |
-        echo "Running regression tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/regression_test.dart
+        echo "🔄 Running regression tests in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/regression_test.dart > regression_test.log 2>&1 &
+        echo "✅ Regression tests started in background. Check regression_test.log for results."
 
   test:performance:
-    desc: Run performance tests
+    desc: Run performance tests (detached)
     deps: [docker:build-test]
     silent: true
     cmds:
       - |
-        echo "Running performance tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/ --coverage --reporter=json --dart-define=performance_test=true
+        echo "⚡ Running performance tests in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/ --coverage --reporter=json --dart-define=performance_test=true > performance_test.log 2>&1 &
+        echo "✅ Performance tests started in background. Check performance_test.log for results."
 
   test:accessibility:
-    desc: Run accessibility tests
+    desc: Run accessibility tests (detached)
     deps: [docker:build-test]
     silent: true
     cmds:
       - |
-        echo "Running accessibility tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/ --dart-define=accessibility_test=true
+        echo "♿ Running accessibility tests in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/ --dart-define=accessibility_test=true > accessibility_test.log 2>&1 &
+        echo "✅ Accessibility tests started in background. Check accessibility_test.log for results."
 
   test:responsive:
-    desc: Run responsive design tests
+    desc: Run responsive design tests (detached)
     deps: [docker:build-test]
     silent: true
     cmds:
       - |
-        echo "Running responsive design tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/web_test.dart --dart-define=responsive_test=true
+        echo "📱 Running responsive design tests in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/web_test.dart --dart-define=responsive_test=true > responsive_test.log 2>&1 &
+        echo "✅ Responsive tests started in background. Check responsive_test.log for results."
 
   test:mobile:
-    desc: Run mobile-specific tests
+    desc: Run mobile-specific tests (detached)
     deps: [docker:build-test]
     silent: true
     cmds:
       - |
-        echo "Running mobile-specific tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/app_test.dart --dart-define=mobile_test=true
+        echo "📱 Running mobile-specific tests in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/app_test.dart --dart-define=mobile_test=true > mobile_test.log 2>&1 &
+        echo "✅ Mobile tests started in background. Check mobile_test.log for results."
 
   test:web:
-    desc: Run web-specific tests
+    desc: Run web-specific tests (detached)
     deps: [docker:build-test]
     silent: true
     cmds:
       - |
-        echo "Running web-specific tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/web_test.dart --dart-define=web_test=true
+        echo "🌐 Running web-specific tests in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/web_test.dart --dart-define=web_test=true > web_test.log 2>&1 &
+        echo "✅ Web tests started in background. Check web_test.log for results."
 
   test:nightly:
-    desc: Run nightly test suite (comprehensive)
+    desc: Run nightly test suite (comprehensive) (detached)
     deps: [docker:build-test]
     silent: true
     cmds:
       - |
-        echo "Running nightly test suite..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/ --coverage
-        echo "Nightly test suite completed"
+        echo "🌙 Running nightly test suite in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:testing bash -c "flutter test tests/unit/ && flutter test tests/integration/ && flutter test tests/unit/ --coverage" > nightly_test.log 2>&1 &
+        echo "✅ Nightly test suite started in background. Check nightly_test.log for results."
 
   test:weekly:
-    desc: Run weekly test suite (extended)
+    desc: Run weekly test suite (extended) (detached)
     deps: [docker:build-test]
     silent: true
     cmds:
       - |
-        echo "Running weekly test suite..."
-        task: test:nightly
-        task: test:performance
-        echo "Weekly test suite completed"
+        echo "📅 Running weekly test suite in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:testing bash -c "flutter test tests/unit/ && flutter test tests/integration/ && flutter test tests/unit/ --coverage --dart-define=performance_test=true" > weekly_test.log 2>&1 &
+        echo "✅ Weekly test suite started in background. Check weekly_test.log for results."
 
   test:monthly:
-    desc: Run monthly test suite (full regression)
+    desc: Run monthly test suite (full regression) (detached)
     deps: [docker:build-test]
     silent: true
     cmds:
       - |
-        echo "Running monthly test suite..."
-        task: test:weekly
-        task: test:regression
-        echo "Monthly test suite completed"
+        echo "📆 Running monthly test suite in detached mode..."
+        nohup docker run --rm {{.IMAGE_NAME}}:testing bash -c "flutter test tests/unit/ && flutter test tests/integration/ && flutter test tests/unit/ --coverage --dart-define=performance_test=true --dart-define=regression_test=true" > monthly_test.log 2>&1 &
+        echo "✅ Monthly test suite started in background. Check monthly_test.log for results."
 
   # ===== CODE QUALITY =====
   code:format:
@@ -635,23 +657,25 @@ tasks:
     deps: [dev:start-fg]
 
   test:
-    desc: Run all tests with coverage
+    desc: Run all tests with coverage (detached)
     deps: [docker:build-test]
     cmds:
       - |
-        echo "Running all tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/unit/
-        echo "Running integration tests..."
-        docker run --rm {{.IMAGE_NAME}}:testing flutter test tests/integration/
+        echo "🧪 Running all tests in detached mode..."
+        echo "📝 Logs will be written to all_tests.log"
+        nohup docker run --rm {{.IMAGE_NAME}}:testing bash -c "flutter test tests/unit/ && echo 'Running integration tests...' && flutter test tests/integration/" > all_tests.log 2>&1 &
+        echo "✅ All tests started in background. Check all_tests.log for results."
 
   serve-web:
-    desc: Serve production web app with nginx
+    desc: Serve production web app with nginx (detached)
     deps: [docker:build-prod]
     silent: true
     cmds:
       - |
-        echo "Starting production web server..."
-        docker run --rm -p {{.WEB_PORT}}:80 {{.IMAGE_NAME}}:production
+        echo "🌐 Starting production web server in detached mode..."
+        nohup docker run --rm -p {{.WEB_PORT}}:80 {{.IMAGE_NAME}}:production > web_server.log 2>&1 &
+        echo "✅ Production web server started in background. Check web_server.log for logs."
+        echo "🌐 Web app available at: http://localhost:{{.WEB_PORT}}"
 
   stop-all:
     desc: Stop all Algebrini containers

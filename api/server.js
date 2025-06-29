@@ -11,11 +11,11 @@ app.use(express.json());
 
 // Database connection
 const pool = new Pool({
-  host: 'localhost',
-  port: 5432,
-  database: 'algebrini_dev',
-  user: 'algebrini_user',
-  password: 'algebrini_dev_password',
+  host: process.env.DB_HOST || 'postgres',
+  port: process.env.DB_PORT || 5432,
+  database: process.env.DB_NAME || 'algebrini_dev',
+  user: process.env.DB_USER || 'algebrini_user',
+  password: process.env.DB_PASSWORD || 'algebrini_dev_password',
 });
 
 // Test database connection
@@ -245,14 +245,26 @@ app.post('/api/users/:userId/progress', async (req, res) => {
   }
 });
 
-// ===== HEALTH CHECK =====
+// ===== HEALTH CHECK ENDPOINT =====
 
+// Health check endpoint
 app.get('/api/health', async (req, res) => {
   try {
+    // Test database connection
     await pool.query('SELECT 1');
-    res.json({ status: 'healthy', database: 'connected' });
+    res.json({ 
+      status: 'healthy', 
+      database: 'connected',
+      timestamp: new Date().toISOString()
+    });
   } catch (err) {
-    res.status(500).json({ status: 'unhealthy', database: 'disconnected', error: err.message });
+    console.error('Health check failed:', err);
+    res.status(503).json({ 
+      status: 'unhealthy', 
+      database: 'disconnected',
+      error: err.message,
+      timestamp: new Date().toISOString()
+    });
   }
 });
 

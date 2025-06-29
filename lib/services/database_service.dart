@@ -140,8 +140,7 @@ class DatabaseService {
                   (e) => e.name == (row[3] as String),
                   orElse: () => DifficultyLevel.easy,
                 ),
-                requirements:
-                    row[4] != null ? jsonDecode(row[4] as String) : null,
+                requirements: row[4] != null ? (row[4] is String ? jsonDecode(row[4] as String) : row[4] as Map<String, dynamic>) : null,
                 createdAt: row[5] as DateTime,
                 updatedAt: row[6] as DateTime,
                 isActive: row[7] as bool,
@@ -174,7 +173,7 @@ class DatabaseService {
                 answer: row[3] as String,
                 hint: row[4] as String?,
                 explanation: row[5] as String?,
-                metadata: row[6] != null ? jsonDecode(row[6] as String) : null,
+                metadata: row[6] != null ? (row[6] is String ? jsonDecode(row[6] as String) : row[6] as Map<String, dynamic>) : null,
                 difficultyScore: row[7] as int,
                 createdAt: row[8] as DateTime,
                 updatedAt: row[9] as DateTime,
@@ -205,13 +204,12 @@ class DatabaseService {
                 title: row[1] as String,
                 subtitle: row[2] as String?,
                 description: row[3] as String?,
-                requirements:
-                    row[4] != null ? jsonDecode(row[4] as String) : null,
+                requirements: row[4] != null ? (row[4] is String ? jsonDecode(row[4] as String) : row[4] as Map<String, dynamic>) : null,
                 realmId: row[5] as String?,
-                games: List<String>.from(jsonDecode(row[6] as String)),
-                levels: List<int>.from(jsonDecode(row[7] as String)),
+                games: row[6] != null ? (row[6] is String ? List<String>.from(jsonDecode(row[6] as String)) : List<String>.from(row[6] as List)) : [],
+                levels: row[7] != null ? (row[7] is String ? List<int>.from(jsonDecode(row[7] as String)) : List<int>.from(row[7] as List)) : [],
                 storyCutsceneId: row[8] as String?,
-                rewards: row[9] != null ? jsonDecode(row[9] as String) : null,
+                rewards: row[9] != null ? (row[9] is String ? jsonDecode(row[9] as String) : row[9] as Map<String, dynamic>) : null,
                 orderIndex: row[10] as int,
                 createdAt: row[11] as DateTime,
                 updatedAt: row[12] as DateTime,
@@ -221,6 +219,42 @@ class DatabaseService {
     } catch (e) {
       print('Error fetching chapters: $e');
       return [];
+    }
+  }
+
+  /// Get chapter by ID
+  Future<Chapter?> getChapterById(String chapterId) async {
+    if (!_isConnected) {
+      return _getChapterFromApi(chapterId);
+    }
+
+    try {
+      final results = await _connection.query(
+          'SELECT id, title, subtitle, description, requirements, realm_id, games, levels, story_cutscene_id, rewards, order_index, created_at, updated_at, is_active FROM chapters WHERE id = @chapterId AND is_active = true',
+          substitutionValues: {'chapterId': chapterId});
+
+      if (results.isEmpty) return null;
+
+      final row = results.first;
+      return Chapter(
+        id: row[0] as String,
+        title: row[1] as String,
+        subtitle: row[2] as String?,
+        description: row[3] as String?,
+        requirements: row[4] != null ? (row[4] is String ? jsonDecode(row[4] as String) : row[4] as Map<String, dynamic>) : null,
+        realmId: row[5] as String?,
+        games: row[6] != null ? (row[6] is String ? List<String>.from(jsonDecode(row[6] as String)) : List<String>.from(row[6] as List)) : [],
+        levels: row[7] != null ? (row[7] is String ? List<int>.from(jsonDecode(row[7] as String)) : List<int>.from(row[7] as List)) : [],
+        storyCutsceneId: row[8] as String?,
+        rewards: row[9] != null ? (row[9] is String ? jsonDecode(row[9] as String) : row[9] as Map<String, dynamic>) : null,
+        orderIndex: row[10] as int,
+        createdAt: row[11] as DateTime,
+        updatedAt: row[12] as DateTime,
+        isActive: row[13] as bool,
+      );
+    } catch (e) {
+      print('Error fetching chapter: $e');
+      return null;
     }
   }
 
@@ -255,6 +289,37 @@ class DatabaseService {
     }
   }
 
+  /// Get realm by ID
+  Future<Realm?> getRealmById(String realmId) async {
+    if (!_isConnected) {
+      return _getRealmFromApi(realmId);
+    }
+
+    try {
+      final results = await _connection.query(
+          'SELECT id, name, description, color, icon, background, created_at, updated_at, is_active FROM realms WHERE id = @realmId AND is_active = true',
+          substitutionValues: {'realmId': realmId});
+
+      if (results.isEmpty) return null;
+
+      final row = results.first;
+      return Realm(
+        id: row[0] as String,
+        name: row[1] as String,
+        description: row[2] as String?,
+        color: row[3] as String?,
+        icon: row[4] as String?,
+        background: row[5] as String?,
+        createdAt: row[6] as DateTime,
+        updatedAt: row[7] as DateTime,
+        isActive: row[8] as bool,
+      );
+    } catch (e) {
+      print('Error fetching realm: $e');
+      return null;
+    }
+  }
+
   // ===== ACHIEVEMENTS =====
 
   /// Get all achievements
@@ -274,8 +339,7 @@ class DatabaseService {
                 description: row[2] as String?,
                 icon: row[3] as String?,
                 color: row[4] as String?,
-                requirements:
-                    row[5] != null ? jsonDecode(row[5] as String) : null,
+                requirements: row[5] != null ? (row[5] is String ? jsonDecode(row[5] as String) : row[5] as Map<String, dynamic>) : null,
                 points: row[6] as int,
                 createdAt: row[7] as DateTime,
                 updatedAt: row[8] as DateTime,
@@ -285,6 +349,38 @@ class DatabaseService {
     } catch (e) {
       print('Error fetching achievements: $e');
       return [];
+    }
+  }
+
+  /// Get achievement by ID
+  Future<Achievement?> getAchievementById(String achievementId) async {
+    if (!_isConnected) {
+      return _getAchievementFromApi(achievementId);
+    }
+
+    try {
+      final results = await _connection.query(
+          'SELECT id, title, description, icon, color, requirements, points, created_at, updated_at, is_active FROM achievements WHERE id = @achievementId AND is_active = true',
+          substitutionValues: {'achievementId': achievementId});
+
+      if (results.isEmpty) return null;
+
+      final row = results.first;
+      return Achievement(
+        id: row[0] as String,
+        title: row[1] as String,
+        description: row[2] as String?,
+        icon: row[3] as String?,
+        color: row[4] as String?,
+        requirements: row[5] != null ? (row[5] is String ? jsonDecode(row[5] as String) : row[5] as Map<String, dynamic>) : null,
+        points: row[6] as int,
+        createdAt: row[7] as DateTime,
+        updatedAt: row[8] as DateTime,
+        isActive: row[9] as bool,
+      );
+    } catch (e) {
+      print('Error fetching achievement: $e');
+      return null;
     }
   }
 

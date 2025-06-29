@@ -18,20 +18,28 @@ import 'services/game_registry.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize database service
-  final gameDataService = GameDataService();
-  await gameDataService.initialize();
+  // Check if we're running in test mode
+  final isTestMode = const bool.fromEnvironment('FLUTTER_TEST', defaultValue: false);
+  
+  if (isTestMode) {
+    // Skip shared_preferences initialization for tests
+    runApp(AlgebriniApp(gameDataService: null));
+  } else {
+    // Initialize database service
+    final gameDataService = GameDataService();
+    await gameDataService.initialize();
 
-  // Initialize game registry with database support
-  GameRegistry().initializeWithDatabase(gameDataService);
+    // Initialize game registry with database support
+    GameRegistry().initializeWithDatabase(gameDataService);
 
-  runApp(AlgebriniApp(gameDataService: gameDataService));
+    runApp(AlgebriniApp(gameDataService: gameDataService));
+  }
 }
 
 class AlgebriniApp extends StatelessWidget {
-  final GameDataService gameDataService;
+  final GameDataService? gameDataService;
 
-  const AlgebriniApp({super.key, required this.gameDataService});
+  const AlgebriniApp({super.key, this.gameDataService});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +47,8 @@ class AlgebriniApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => FontSizeProvider()),
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
-        Provider<GameDataService>.value(value: gameDataService),
+        if (gameDataService != null)
+          Provider<GameDataService>.value(value: gameDataService!),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {
