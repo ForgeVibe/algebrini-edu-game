@@ -50,8 +50,56 @@ class DatabaseService {
   /// Close database connection
   Future<void> close() async {
     if (_isConnected) {
-      await _connection.close();
+      try {
+        await _connection.close();
+      } catch (e) {
+        print('Error closing database connection: $e');
+      }
       _isConnected = false;
+    }
+  }
+
+  /// Check if database is connected and reconnect if needed
+  Future<bool> _ensureConnection() async {
+    if (!_isConnected) {
+      try {
+        await initialize();
+      } catch (e) {
+        print('Failed to reconnect to database: $e');
+        return false;
+      }
+    }
+    
+    // Test the connection with retry logic
+    for (int attempt = 1; attempt <= 3; attempt++) {
+      try {
+        await _connection.query('SELECT 1');
+        return true;
+      } catch (e) {
+        print('Database connection test failed (attempt $attempt): $e');
+        if (attempt == 3) {
+          _isConnected = false;
+          return false;
+        }
+        // Wait before retry
+        await Future.delayed(Duration(milliseconds: 500 * attempt));
+      }
+    }
+    return false;
+  }
+
+  /// Safe database query execution with error handling
+  Future<List<List<dynamic>>> _safeQuery(String query, {Map<String, dynamic>? substitutionValues}) async {
+    try {
+      if (!await _ensureConnection()) {
+        throw Exception('Database connection not available');
+      }
+      
+      return await _connection.query(query, substitutionValues: substitutionValues);
+    } catch (e) {
+      print('Database query failed: $e');
+      _isConnected = false;
+      rethrow;
     }
   }
 
@@ -62,12 +110,12 @@ class DatabaseService {
 
   /// Get all games
   Future<List<Game>> getGames() async {
-    if (!_isConnected) {
+    if (!await _ensureConnection()) {
       return _getGamesFromApi();
     }
 
     try {
-      final results = await _connection.query(
+      final results = await _safeQuery(
           'SELECT id, name, description, icon, difficulty_levels, created_at, updated_at, is_active FROM games WHERE is_active = true ORDER BY name');
 
       return results
@@ -84,7 +132,8 @@ class DatabaseService {
           .toList();
     } catch (e) {
       print('Error fetching games: $e');
-      return [];
+      _isConnected = false; // Mark as disconnected on error
+      return _getGamesFromApi();
     }
   }
 
@@ -122,7 +171,7 @@ class DatabaseService {
 
   /// Get levels for a specific game
   Future<List<Level>> getLevelsByGameId(String gameId) async {
-    if (!_isConnected) {
+    if (!await _ensureConnection()) {
       return _getLevelsFromApi(gameId);
     }
 
@@ -148,7 +197,8 @@ class DatabaseService {
           .toList();
     } catch (e) {
       print('Error fetching levels: $e');
-      return [];
+      _isConnected = false; // Mark as disconnected on error
+      return _getLevelsFromApi(gameId);
     }
   }
 
@@ -156,7 +206,7 @@ class DatabaseService {
 
   /// Get challenges for a specific level
   Future<List<Challenge>> getChallengesByLevelId(String levelId) async {
-    if (!_isConnected) {
+    if (!await _ensureConnection()) {
       return _getChallengesFromApi(levelId);
     }
 
@@ -182,7 +232,8 @@ class DatabaseService {
           .toList();
     } catch (e) {
       print('Error fetching challenges: $e');
-      return [];
+      _isConnected = false; // Mark as disconnected on error
+      return _getChallengesFromApi(levelId);
     }
   }
 
@@ -190,7 +241,7 @@ class DatabaseService {
 
   /// Get all chapters
   Future<List<Chapter>> getChapters() async {
-    if (!_isConnected) {
+    if (!await _ensureConnection()) {
       return _getChaptersFromApi();
     }
 
@@ -218,7 +269,8 @@ class DatabaseService {
           .toList();
     } catch (e) {
       print('Error fetching chapters: $e');
-      return [];
+      _isConnected = false; // Mark as disconnected on error
+      return _getChaptersFromApi();
     }
   }
 
@@ -262,7 +314,7 @@ class DatabaseService {
 
   /// Get all realms
   Future<List<Realm>> getRealms() async {
-    if (!_isConnected) {
+    if (!await _ensureConnection()) {
       return _getRealmsFromApi();
     }
 
@@ -285,7 +337,8 @@ class DatabaseService {
           .toList();
     } catch (e) {
       print('Error fetching realms: $e');
-      return [];
+      _isConnected = false; // Mark as disconnected on error
+      return _getRealmsFromApi();
     }
   }
 
@@ -324,7 +377,7 @@ class DatabaseService {
 
   /// Get all achievements
   Future<List<Achievement>> getAchievements() async {
-    if (!_isConnected) {
+    if (!await _ensureConnection()) {
       return _getAchievementsFromApi();
     }
 
@@ -348,7 +401,8 @@ class DatabaseService {
           .toList();
     } catch (e) {
       print('Error fetching achievements: $e');
-      return [];
+      _isConnected = false; // Mark as disconnected on error
+      return _getAchievementsFromApi();
     }
   }
 

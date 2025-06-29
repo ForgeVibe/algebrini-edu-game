@@ -9,22 +9,71 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// Database connection
-const pool = new Pool({
-  host: process.env.DB_HOST || 'postgres',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'algebrini_dev',
-  user: process.env.DB_USER || 'algebrini_user',
-  password: process.env.DB_PASSWORD || 'algebrini_dev_password',
+// Request logging middleware
+app.use((req, res, next) => {
+  const start = Date.now();
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
+  });
+  
+  next();
 });
 
-// Test database connection
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('Database connection error:', err);
-  } else {
-    console.log('Database connected successfully');
+// Database connection with retry logic
+let pool;
+let isConnected = false;
+
+async function initializeDatabase() {
+  const maxRetries = 5;
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      pool = new Pool({
+        host: process.env.DB_HOST || 'postgres',
+        port: process.env.DB_PORT || 5432,
+        database: process.env.DB_NAME || 'algebrini_dev',
+        user: process.env.DB_USER || 'algebrini_user',
+        password: process.env.DB_PASSWORD || 'algebrini_dev_password',
+        max: 20, // Maximum number of clients in the pool
+        idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+        connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+      });
+
+      // Test the connection
+      await pool.query('SELECT NOW()');
+      isConnected = true;
+      console.log('Database connected successfully');
+      break;
+    } catch (err) {
+      retries++;
+      console.error(`Database connection attempt ${retries} failed:`, err.message);
+      
+      if (retries < maxRetries) {
+        console.log(`Retrying in ${retries * 1000}ms...`);
+        await new Promise(resolve => setTimeout(resolve, retries * 1000));
+      } else {
+        console.error('Failed to connect to database after all retries');
+        isConnected = false;
+      }
+    }
   }
+}
+
+// Initialize database on startup
+initializeDatabase();
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    database: isConnected ? 'connected' : 'disconnected',
+    uptime: process.uptime()
+  });
 });
 
 // ===== GAMES ENDPOINTS =====
@@ -32,19 +81,27 @@ pool.query('SELECT NOW()', (err, res) => {
 // Get all games
 app.get('/api/games', async (req, res) => {
   try {
+    if (!isConnected) {
+      return res.status(503).json({ error: 'Database not connected' });
+    }
+    
     const result = await pool.query(
       'SELECT id, name, description, icon, difficulty_levels, created_at, updated_at, is_active FROM games WHERE is_active = true ORDER BY name'
     );
     res.json(result.rows);
   } catch (err) {
     console.error('Error fetching games:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 });
 
 // Get game by ID
 app.get('/api/games/:id', async (req, res) => {
   try {
+    if (!isConnected) {
+      return res.status(503).json({ error: 'Database not connected' });
+    }
+    
     const result = await pool.query(
       'SELECT id, name, description, icon, difficulty_levels, created_at, updated_at, is_active FROM games WHERE id = $1 AND is_active = true',
       [req.params.id]
@@ -57,13 +114,17 @@ app.get('/api/games/:id', async (req, res) => {
     res.json(result.rows[0]);
   } catch (err) {
     console.error('Error fetching game:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 });
 
 // Get levels for a game
 app.get('/api/games/:id/levels', async (req, res) => {
   try {
+    if (!isConnected) {
+      return res.status(503).json({ error: 'Database not connected' });
+    }
+    
     const result = await pool.query(
       'SELECT id, game_id, level_number, difficulty, requirements, created_at, updated_at, is_active FROM levels WHERE game_id = $1 AND is_active = true ORDER BY level_number',
       [req.params.id]
@@ -71,7 +132,7 @@ app.get('/api/games/:id/levels', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error('Error fetching levels:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ error: 'Internal server error', details: err.message });
   }
 });
 
@@ -245,29 +306,6 @@ app.post('/api/users/:userId/progress', async (req, res) => {
   }
 });
 
-// ===== HEALTH CHECK ENDPOINT =====
-
-// Health check endpoint
-app.get('/api/health', async (req, res) => {
-  try {
-    // Test database connection
-    await pool.query('SELECT 1');
-    res.json({ 
-      status: 'healthy', 
-      database: 'connected',
-      timestamp: new Date().toISOString()
-    });
-  } catch (err) {
-    console.error('Health check failed:', err);
-    res.status(503).json({ 
-      status: 'unhealthy', 
-      database: 'disconnected',
-      error: err.message,
-      timestamp: new Date().toISOString()
-    });
-  }
-});
-
 // ===== ERROR HANDLING =====
 
 app.use((err, req, res, next) => {
@@ -287,7 +325,17 @@ app.listen(port, () => {
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('Shutting down server...');
-  await pool.end();
+  console.log('Shutting down gracefully...');
+  if (pool) {
+    await pool.end();
+  }
+  process.exit(0);
+});
+
+process.on('SIGTERM', async () => {
+  console.log('Shutting down gracefully...');
+  if (pool) {
+    await pool.end();
+  }
   process.exit(0);
 }); 

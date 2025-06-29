@@ -192,76 +192,60 @@ tasks:
   # Note: All 'db:*' tasks that use docker-compose now use the 'dir' property.
   db:start:
     desc: Start development database stack
-    dir: infra/database/dev
     silent: true
     cmds:
-      - cd infra/database/dev
-      - docker compose up -d
-      - "echo 'Database stack started'"
-      - "echo 'PostgreSQL: localhost:{{.POSTGRES_PORT}}'"
-      - "echo 'Redis: localhost:{{.REDIS_PORT}}'"
-      - "echo 'pgAdmin: http://localhost:{{.PGADMIN_PORT}}'"
+      - echo "Starting database stack..."
+      - docker compose -f infra/database/dev/compose.yml up -d
+      - echo "Database stack started"
+      - echo "pgAdmin available at http://localhost:8081"
 
   db:stop:
     desc: Stop development database stack
-    dir: infra/database/dev
     silent: true
     cmds:
-      - cd infra/database/dev
-      - docker compose down
-      - "echo 'Database stack stopped'"
-
-  db:status:
-    desc: Check database stack status
-    dir: infra/database/dev
-    silent: true
-    cmds:
-      - cd infra/database/dev
-      - docker compose ps
-      - "echo ''"
-      - "echo 'Database connection test:'"
-      - docker compose exec -T postgres pg_isready -U algebrini_user || "echo 'PostgreSQL not ready'"
-      - docker compose exec -T redis redis-cli ping || "echo 'Redis not ready'"
+      - echo "Stopping database stack..."
+      - docker compose -f infra/database/dev/compose.yml down
+      - echo "Database stack stopped"
 
   db:restart:
     desc: Restart development database stack
     silent: true
     cmds:
-      - task: db:stop
-      - task: db:start
+      - echo "Restarting database stack..."
+      - docker compose -f infra/database/dev/compose.yml restart
+      - echo "Database stack restarted"
+
+  db:status:
+    desc: Check database stack status
+    cmds:
+      - echo "Database Stack Status:"
+      - docker compose -f infra/database/dev/compose.yml ps
 
   db:logs:
     desc: Show database logs
-    dir: infra/database/dev
-    silent: true
     cmds:
-      - cd infra/database/dev
-      - docker compose logs --tail=50
+      - docker compose -f infra/database/dev/compose.yml logs -f
 
   db:backup:
     desc: Create database backup
-    dir: infra/database
-    silent: true
     cmds:
-      - cd infra/database
-      - ./scripts/backup.sh dev
+      - echo "Creating database backup..."
+      - mkdir -p backups
+      - docker compose -f infra/database/dev/compose.yml exec -T postgres pg_dump -U algebrini_user algebrini_dev > backups/backup-$(date +%Y%m%d-%H%M%S).sql
+      - echo "Backup created"
 
   db:restore:
     desc: Restore database from backup
-    dir: infra/database
-    silent: true
     cmds:
-      - cd infra/database
-      - ./scripts/restore.sh dev
+      - echo "Restoring database from backup..."
+      - docker compose -f infra/database/dev/compose.yml exec -T postgres psql -U algebrini_user -d algebrini_dev < backups/backup-$(date +%Y%m%d-%H%M%S).sql
+      - echo "Database restored"
 
   db:monitor:
     desc: Monitor database performance
-    silent: true
     cmds:
-      - cd infra/database/dev
-      - docker compose exec postgres psql -U algebrini_user -d algebrini_dev -c "SELECT version();"
-      - "echo ''"
-      - docker compose exec postgres psql -U algebrini_user -d algebrini_dev -c "SELECT count(*) as total_tables FROM information_schema.tables WHERE table_schema = 'public';"
+      - echo "Database Performance:"
+      - docker compose -f infra/database/dev/compose.yml exec postgres psql -U algebrini_user -d algebrini_dev -c "SELECT * FROM pg_stat_activity WHERE state = 'active';"
 
   # ===== REDIS MANAGEMENT =====
   redis:start:
@@ -851,3 +835,65 @@ tasks:
         echo "  task deps:outdated - Check for outdated dependencies"
         echo ""
         echo "For more information, run: task --list-all"
+
+  # Production Management
+  prod:start:
+    desc: Start production environment
+    cmds:
+      - echo "Starting production environment..."
+      - docker compose -f infra/database/prod/compose.yml up -d
+      - echo "Production environment started"
+      - echo "Health check http://localhost:3000/health"
+
+  prod:stop:
+    desc: Stop production environment
+    cmds:
+      - echo "Stopping production environment..."
+      - docker compose -f infra/database/prod/compose.yml down
+      - echo "Production environment stopped"
+
+  prod:restart:
+    desc: Restart production environment
+    cmds:
+      - echo "Restarting production environment..."
+      - docker compose -f infra/database/prod/compose.yml restart
+      - echo "Production environment restarted"
+
+  prod:logs:
+    desc: View production logs
+    cmds:
+      - docker compose -f infra/database/prod/compose.yml logs -f
+
+  prod:status:
+    desc: Check production environment status
+    cmds:
+      - echo "Production Environment Status:"
+      - docker compose -f infra/database/prod/compose.yml ps
+      - echo ""
+      - echo "Health Checks:"
+      - curl -s http://localhost:3000/health | jq . || echo "API not responding"
+
+  prod:deploy:
+    desc: Deploy to production
+    cmds:
+      - echo "Deploying to production..."
+      - chmod +x scripts/deploy-prod.sh
+      - ./scripts/deploy-prod.sh
+
+  prod:backup:
+    desc: Create production backup
+    cmds:
+      - echo "Creating production backup..."
+      - mkdir -p backups
+      - docker compose -f infra/database/prod/compose.yml exec -T postgres pg_dump -U algebrini_user algebrini_prod > backups/backup-$(date +%Y%m%d-%H%M%S).sql
+      - echo "Backup created"
+
+  prod:monitor:
+    desc: Monitor production environment
+    cmds:
+      - echo "Production Monitoring:"
+      - echo "Memory usage:"
+      - docker stats --no-stream --format "table {{.Container}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.MemPerc}}"
+      - echo ""
+      - echo "Service status:"
+      - docker compose -f infra/database/prod/compose.yml ps
