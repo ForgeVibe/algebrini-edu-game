@@ -1,0 +1,179 @@
+# Infrastructure Management Rules
+
+## Docker Management
+
+### 1. Container Lifecycle
+- Always check container status before making changes
+- Use health checks to verify service readiness
+- Implement proper dependency management between services
+- Handle container restarts gracefully
+
+### 2. Network Management
+- Understand Docker network isolation
+- Use service names for inter-container communication
+- Avoid hardcoded IP addresses
+- Handle network conflicts proactively
+
+### 3. Volume Management
+- Use relative paths for volume mounts
+- Ensure proper permissions for mounted volumes
+- Handle data persistence appropriately
+- Clean up unused volumes
+
+### 4. Configuration Management
+- Use environment variables for configuration
+- Separate development and production configurations
+- Implement configuration validation
+- Provide clear configuration documentation
+
+## Database Management
+
+### 1. Connection Management
+- Implement connection pooling with appropriate limits
+- Handle connection failures gracefully
+- Monitor connection usage and performance
+- Implement retry logic for transient failures
+
+### 2. Performance Optimization
+- Configure database settings for expected load
+- Implement proper indexing strategies
+- Monitor query performance
+- Optimize for read/write patterns
+
+### 3. Backup and Recovery
+- Implement regular backup procedures
+- Test backup and recovery processes
+- Document recovery procedures
+- Monitor backup success and integrity
+
+### 4. Schema Management
+- Version control database schemas
+- Implement migration strategies
+- Document schema changes
+- Test schema changes in isolation
+
+## Load Configuration
+
+### 1. Dual Configuration System
+- Implement standard and high-load configurations
+- Provide easy switching between configurations
+- Document configuration differences
+- Test both configurations thoroughly
+
+### 2. Scaling Strategies
+- Design for horizontal scaling
+- Implement load balancing when needed
+- Monitor resource usage
+- Plan for capacity increases
+
+### 3. Monitoring and Observability
+- Implement health checks for all services
+- Add monitoring for critical metrics
+- Set up alerting for issues
+- Provide dashboards for system status
+
+### 4. Resource Management
+- Set appropriate resource limits
+- Monitor resource usage
+- Implement resource cleanup
+- Plan for resource scaling
+
+## Environment Management
+
+### 1. Development Environment
+- Provide easy setup procedures
+- Ensure consistent environments
+- Handle dependency management
+- Provide clear development workflows
+
+### 2. Production Readiness
+- Implement production-like configurations
+- Test production scenarios
+- Document deployment procedures
+- Plan for production monitoring
+
+### 3. Configuration Switching
+- Provide simple commands for configuration changes
+- Validate configuration changes
+- Document configuration options
+- Test configuration switching
+
+## Service Integration
+
+### 1. API Management
+- Implement proper API health checks
+- Handle API versioning
+- Monitor API performance
+- Implement proper error handling
+
+### 2. Service Discovery
+- Use service names for communication
+- Implement service health checks
+- Handle service failures gracefully
+- Monitor service dependencies
+
+### 3. Data Flow
+- Understand data flow between services
+- Implement proper data validation
+- Handle data transformation
+- Monitor data integrity
+
+## Security Considerations
+
+### 1. Access Control
+- Implement proper authentication
+- Use secure communication channels
+- Handle sensitive data appropriately
+- Monitor access patterns
+
+### 2. Configuration Security
+- Secure configuration storage
+- Use environment variables for secrets
+- Implement configuration validation
+- Monitor configuration changes
+
+### 3. Network Security
+- Implement proper network isolation
+- Use secure communication protocols
+- Monitor network traffic
+- Handle security incidents
+
+## Troubleshooting
+
+### 1. Diagnostic Procedures
+- Check service status systematically
+- Review logs for errors
+- Test connectivity between services
+- Verify configuration settings
+
+### 2. Recovery Procedures
+- Implement automated recovery where possible
+- Document manual recovery steps
+- Test recovery procedures
+- Monitor recovery success
+
+### 3. Prevention
+- Implement monitoring and alerting
+- Use health checks proactively
+- Document common issues and solutions
+- Implement preventive maintenance
+
+## Documentation
+
+### 1. Configuration Documentation
+- Document all configuration options
+- Provide examples for common scenarios
+- Explain configuration implications
+- Keep documentation up to date
+
+### 2. Operational Documentation
+- Document operational procedures
+- Provide troubleshooting guides
+- Document recovery procedures
+- Keep procedures current
+
+### 3. Architecture Documentation
+- Document system architecture
+- Explain component interactions
+- Document design decisions
+- Keep architecture current

@@ -1,0 +1,166 @@
+# Autonomous Development Rules
+
+## Core Principles
+
+### 1. Proactive Problem Solving
+- Always identify the root cause of issues before implementing solutions
+- When encountering errors, investigate thoroughly using logs, status checks, and debugging tools
+- Don't just fix symptoms - solve the underlying problems
+- If a solution doesn't work, try alternative approaches systematically
+
+### 2. Systematic Approach
+- Start with understanding the current state (status checks, logs, environment)
+- Identify the problem or requirement clearly
+- Plan the solution with multiple steps if needed
+- Execute step-by-step, verifying each step
+- Test the final result to ensure it works
+
+### 3. Infrastructure-First Thinking
+- Always consider the infrastructure implications of changes
+- Database connections, Docker networks, environment variables, and service dependencies
+- When adding features, ensure the infrastructure can support them
+- Think about scalability and performance from the start
+
+### 4. Documentation-Driven Development
+- Document all major features and configurations
+- Create comprehensive guides for complex systems
+- Update README files when adding new functionality
+- Provide both quick reference and detailed documentation
+
+## Development Workflow
+
+### 1. Environment Assessment
+```bash
+# Always start by checking current state
+task env:status
+docker ps
+git status
+```
+
+### 2. Problem Diagnosis
+- Check logs: `docker logs <container_name>`
+- Verify connectivity: `curl`, `ping`, network tests
+- Check configuration: environment variables, config files
+- Test endpoints: health checks, API calls
+
+### 3. Solution Implementation
+- Make minimal, focused changes
+- Test each change immediately
+- Use version control for all changes
+- Document the solution
+
+### 4. Validation
+- Verify the solution works end-to-end
+- Run relevant tests
+- Check that no regressions were introduced
+- Update documentation if needed
+
+## Specific Patterns
+
+### Database Issues
+1. Check if database is running: `task db:status`
+2. Verify connection parameters
+3. Check network connectivity between services
+4. Review database logs for errors
+5. Test connection from application
+
+### Docker Issues
+1. Check container status: `docker ps`
+2. Verify network configuration
+3. Check for port conflicts
+4. Review Docker Compose configuration
+5. Restart services if needed
+
+### API Issues
+1. Check API server status: `task api:status`
+2. Verify database connectivity
+3. Check environment variables
+4. Review API logs
+5. Test endpoints directly
+
+### Configuration Management
+1. Use environment variables for configuration
+2. Never hardcode absolute paths
+3. Create separate configs for different environments
+4. Document all configuration options
+5. Provide easy switching between configurations
+
+## Communication Style
+
+### 1. Clear Status Updates
+- Always provide clear status of what you're doing
+- Explain the problem and your approach
+- Show progress with specific steps
+- Confirm when tasks are completed
+
+### 2. Proactive Suggestions
+- Suggest improvements when you see opportunities
+- Recommend best practices
+- Point out potential issues before they become problems
+- Offer alternative approaches when appropriate
+
+### 3. Educational Approach
+- Explain why you're making certain decisions
+- Share knowledge about technologies and patterns
+- Help the user understand the system better
+- Provide context for technical decisions
+
+## Error Handling
+
+### 1. Graceful Degradation
+- Always have fallback options
+- Don't let one failure stop the entire process
+- Provide clear error messages
+- Suggest next steps when errors occur
+
+### 2. Recovery Procedures
+- Know how to reset environments
+- Have procedures for common failures
+- Document recovery steps
+- Test recovery procedures
+
+### 3. Learning from Failures
+- Analyze why failures occurred
+- Implement preventive measures
+- Update documentation with lessons learned
+- Improve processes based on failures
+
+## Quality Assurance
+
+### 1. Testing
+- Always test changes before considering them complete
+- Run relevant test suites
+- Test both happy path and error scenarios
+- Verify integration points
+
+### 2. Code Quality
+- Follow established patterns and conventions
+- Write clean, maintainable code
+- Add appropriate comments and documentation
+- Use consistent formatting and style
+
+### 3. Security
+- Never expose sensitive information in logs or output
+- Use secure defaults
+- Validate inputs and configurations
+- Follow security best practices
+
+## Scalability Considerations
+
+### 1. Performance
+- Consider the performance impact of changes
+- Test with realistic load when possible
+- Monitor resource usage
+- Optimize bottlenecks
+
+### 2. Maintainability
+- Write code that's easy to understand and modify
+- Use clear naming conventions
+- Structure code logically
+- Minimize dependencies
+
+### 3. Extensibility
+- Design for future growth
+- Use configuration over hardcoding
+- Create modular, reusable components
+- Plan for different deployment scenarios

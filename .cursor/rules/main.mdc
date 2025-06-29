@@ -1,0 +1,250 @@
+# Algebrini Development Rules
+
+## Overview
+
+This file contains the main rules for autonomous development of the Algebrini educational game project. These rules are based on our comprehensive development experience and ensure consistent, high-quality development practices.
+
+## Core Principles
+
+### 1. Autonomous Problem Solving
+- Always investigate issues thoroughly before implementing solutions
+- Use systematic debugging approaches (logs, status checks, network tests)
+- Don't just fix symptoms - solve root causes
+- Try alternative approaches when initial solutions don't work
+
+### 2. Infrastructure-First Thinking
+- Consider infrastructure implications of all changes
+- Think about scalability and performance from the start
+- Ensure proper service dependencies and networking
+- Plan for both development and production environments
+
+### 3. Documentation-Driven Development
+- Document all major features and configurations
+- Provide both quick reference and detailed guides
+- Update documentation with code changes
+- Include examples and troubleshooting information
+
+### 4. Quality and Testing
+- Implement comprehensive testing strategies
+- Ensure code quality and maintainability
+- Test both success and failure scenarios
+- Validate solutions end-to-end
+
+## Development Workflow
+
+### 1. Initial Assessment
+```bash
+# Always start with current state assessment
+task env:status
+docker ps
+git status
+```
+
+### 2. Problem Diagnosis
+- Check logs and error messages
+- Verify service connectivity
+- Test endpoints and configurations
+- Identify root causes
+
+### 3. Solution Implementation
+- Plan solution with multiple steps if needed
+- Implement changes systematically
+- Test each step
+- Document the solution
+
+### 4. Validation and Testing
+- Verify end-to-end functionality
+- Run relevant tests
+- Check for regressions
+- Update documentation
+
+## Key Commands
+
+### Environment Management
+```bash
+task dev:setup      # Complete development setup
+task dev:start      # Start development environment
+task dev:stop       # Stop development environment
+task env:status     # Check environment status
+```
+
+### Load Configuration
+```bash
+task load:standard  # Switch to standard configuration
+task load:high      # Switch to high-load configuration
+task load:status    # Check current configuration
+```
+
+### Database Management
+```bash
+task db:start       # Start database stack
+task db:status      # Check database status
+task db:backup      # Create database backup
+task db:restore     # Restore database
+```
+
+### Testing
+```bash
+task test           # Run all tests
+task test:unit      # Run unit tests
+task test:integration # Run integration tests
+task test:coverage  # Generate coverage report
+```
+
+## Best Practices
+
+### 1. Always Check Status First
+- Verify current environment state
+- Check service health and connectivity
+- Review recent changes and logs
+- Understand the problem context
+
+### 2. Implement Solutions Systematically
+- Break complex problems into manageable steps
+- Test each step before proceeding
+- Document the approach and reasoning
+- Provide clear status updates
+
+### 3. Consider Scalability
+- Think about performance implications
+- Plan for different load scenarios
+- Implement configuration-driven scaling
+- Document scaling strategies
+
+### 4. Maintain Quality
+- Write clean, maintainable code
+- Implement comprehensive testing
+- Follow established patterns and conventions
+- Document all changes and decisions
+
+### 5. Communicate Effectively
+- Provide clear status updates
+- Explain technical decisions
+- Offer educational context
+- Suggest improvements proactively
+
+## Error Handling
+
+### 1. Systematic Debugging
+- Check logs first
+- Verify service status
+- Test connectivity
+- Review configuration
+
+### 2. Recovery Procedures
+- Know how to reset environments
+- Have procedures for common failures
+- Document recovery steps
+- Test recovery procedures
+
+### 3. Learning from Failures
+- Analyze root causes
+- Implement preventive measures
+- Update documentation
+- Improve processes
+
+## Documentation Requirements
+
+### 1. Feature Documentation
+- Document all major features
+- Provide usage examples
+- Include configuration options
+- Add troubleshooting information
+
+### 2. Technical Documentation
+- Document architecture decisions
+- Explain configuration options
+- Provide API documentation
+- Include performance characteristics
+
+### 3. User Documentation
+- Provide clear user guides
+- Include step-by-step instructions
+- Add troubleshooting guides
+- Maintain FAQ sections
+
+## Quality Standards
+
+### 1. Code Quality
+- Follow established patterns
+- Write clean, readable code
+- Include appropriate comments
+- Use consistent formatting
+
+### 2. Testing Quality
+- Maintain high test coverage
+- Test both success and failure scenarios
+- Include integration tests
+- Validate end-to-end functionality
+
+### 3. Documentation Quality
+- Ensure accuracy and completeness
+- Provide clear examples
+- Include troubleshooting information
+- Maintain consistency
+
+## Continuous Improvement
+
+### 1. Process Improvement
+- Learn from each development cycle
+- Improve debugging procedures
+- Enhance documentation practices
+- Optimize development workflows
+
+### 2. Technology Updates
+- Stay current with best practices
+- Update tools and dependencies
+- Improve security practices
+- Enhance performance characteristics
+
+### 3. Knowledge Sharing
+- Document lessons learned
+- Share best practices
+- Improve team capabilities
+- Maintain knowledge base
+
+## Emergency Procedures
+
+### 1. Critical Issues
+- Assess impact immediately
+- Implement temporary fixes if needed
+- Communicate status clearly
+- Plan permanent solutions
+
+### 2. Service Failures
+- Check service health
+- Review recent changes
+- Implement recovery procedures
+- Document incident details
+
+### 3. Data Issues
+- Verify data integrity
+- Check backup availability
+- Implement recovery procedures
+- Document incident details
+
+## Success Metrics
+
+### 1. Development Efficiency
+- Reduced debugging time
+- Faster problem resolution
+- Improved code quality
+- Better documentation
+
+### 2. System Reliability
+- Fewer production issues
+- Faster recovery times
+- Better monitoring coverage
+- Improved performance
+
+### 3. User Satisfaction
+- Clearer documentation
+- Better user experience
+- Faster issue resolution
+- Improved system performance
+
+## Conclusion
+
+These rules provide a comprehensive framework for autonomous development of the Algebrini project. They ensure consistent, high-quality development practices while maintaining the flexibility to adapt to changing requirements and technologies.
+
+Remember: Always start with understanding the current state, implement solutions systematically, consider scalability implications, maintain high quality standards, and communicate effectively throughout the process.

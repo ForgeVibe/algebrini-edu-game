@@ -1,0 +1,261 @@
+# Scalability and Performance Rules
+
+## Scalability Principles
+
+### 1. Design for Scale
+- Always consider scalability from the start
+- Design systems that can handle growth
+- Implement horizontal scaling capabilities
+- Plan for capacity increases
+
+### 2. Configuration-Driven Scaling
+- Use configuration to control scaling behavior
+- Provide easy switching between configurations
+- Implement environment-specific optimizations
+- Document scaling strategies
+
+### 3. Resource Management
+- Monitor resource usage continuously
+- Implement appropriate resource limits
+- Plan for resource scaling
+- Optimize resource utilization
+
+## Load Configuration
+
+### 1. Dual Configuration System
+- Implement standard and high-load configurations
+- Provide easy switching between configurations
+- Document configuration differences
+- Test both configurations thoroughly
+
+### 2. Configuration Parameters
+- Database connection pools (20 vs 100 connections)
+- API instances (1 vs 3 instances)
+- Memory allocation (256MB vs 512MB Redis)
+- Monitoring and observability
+
+### 3. Configuration Switching
+- Provide simple commands for switching
+- Validate configuration changes
+- Ensure smooth transitions
+- Document switching procedures
+
+## Database Scaling
+
+### 1. Connection Pooling
+- Implement appropriate connection pool sizes
+- Monitor connection usage
+- Handle connection failures gracefully
+- Optimize for expected load
+
+### 2. Query Optimization
+- Optimize database queries
+- Implement proper indexing
+- Monitor query performance
+- Plan for query scaling
+
+### 3. Database Configuration
+- Configure for expected load
+- Optimize memory and disk usage
+- Implement proper backup strategies
+- Plan for database scaling
+
+## API Scaling
+
+### 1. Multiple Instances
+- Implement multiple API instances
+- Use load balancing for distribution
+- Ensure instance independence
+- Monitor instance health
+
+### 2. Load Balancing
+- Implement proper load balancing
+- Use health checks for routing
+- Monitor load distribution
+- Handle instance failures
+
+### 3. API Performance
+- Optimize API response times
+- Implement caching strategies
+- Monitor API performance
+- Plan for API scaling
+
+## Caching Strategies
+
+### 1. Redis Configuration
+- Configure Redis for expected load
+- Implement appropriate memory limits
+- Use proper eviction policies
+- Monitor Redis performance
+
+### 2. Cache Management
+- Implement cache invalidation strategies
+- Monitor cache hit rates
+- Optimize cache usage
+- Plan for cache scaling
+
+### 3. Cache Performance
+- Monitor cache performance
+- Optimize cache operations
+- Implement cache warming
+- Plan for cache scaling
+
+## Monitoring and Observability
+
+### 1. Performance Monitoring
+- Implement comprehensive monitoring
+- Track key performance metrics
+- Set up alerting for issues
+- Monitor resource usage
+
+### 2. Health Checks
+- Implement health checks for all services
+- Monitor service availability
+- Track service dependencies
+- Alert on service failures
+
+### 3. Metrics Collection
+- Collect relevant metrics
+- Store metrics appropriately
+- Analyze metrics for trends
+- Use metrics for optimization
+
+## Resource Optimization
+
+### 1. Memory Management
+- Monitor memory usage
+- Implement memory limits
+- Optimize memory allocation
+- Plan for memory scaling
+
+### 2. CPU Optimization
+- Monitor CPU usage
+- Optimize CPU-intensive operations
+- Implement proper concurrency
+- Plan for CPU scaling
+
+### 3. Disk I/O Optimization
+- Monitor disk usage
+- Optimize disk operations
+- Implement proper storage strategies
+- Plan for storage scaling
+
+## Performance Testing
+
+### 1. Load Testing
+- Test system under expected load
+- Identify performance bottlenecks
+- Validate scalability assumptions
+- Test resource usage patterns
+
+### 2. Stress Testing
+- Test system limits
+- Identify failure points
+- Test recovery mechanisms
+- Validate error handling under load
+
+### 3. Performance Monitoring
+- Monitor test execution
+- Track performance metrics
+- Identify performance regressions
+- Document performance characteristics
+
+## Scaling Strategies
+
+### 1. Horizontal Scaling
+- Design for horizontal scaling
+- Implement proper load balancing
+- Ensure service independence
+- Plan for horizontal scaling
+
+### 2. Vertical Scaling
+- Optimize resource usage
+- Implement proper resource limits
+- Monitor resource utilization
+- Plan for vertical scaling
+
+### 3. Auto Scaling
+- Implement auto-scaling capabilities
+- Monitor scaling triggers
+- Optimize scaling policies
+- Plan for auto-scaling
+
+## Capacity Planning
+
+### 1. Resource Planning
+- Plan for expected growth
+- Monitor resource usage trends
+- Implement capacity alerts
+- Plan for capacity increases
+
+### 2. Performance Planning
+- Plan for performance requirements
+- Monitor performance trends
+- Implement performance alerts
+- Plan for performance improvements
+
+### 3. Scaling Planning
+- Plan for scaling requirements
+- Monitor scaling trends
+- Implement scaling alerts
+- Plan for scaling improvements
+
+## Optimization Strategies
+
+### 1. Code Optimization
+- Optimize critical code paths
+- Implement efficient algorithms
+- Monitor code performance
+- Plan for code optimization
+
+### 2. Configuration Optimization
+- Optimize configuration settings
+- Monitor configuration impact
+- Implement configuration validation
+- Plan for configuration optimization
+
+### 3. Infrastructure Optimization
+- Optimize infrastructure settings
+- Monitor infrastructure performance
+- Implement infrastructure validation
+- Plan for infrastructure optimization
+
+## Performance Standards
+
+### 1. Response Time Standards
+- Set appropriate response time targets
+- Monitor response time performance
+- Implement response time alerts
+- Plan for response time improvements
+
+### 2. Throughput Standards
+- Set appropriate throughput targets
+- Monitor throughput performance
+- Implement throughput alerts
+- Plan for throughput improvements
+
+### 3. Resource Usage Standards
+- Set appropriate resource usage targets
+- Monitor resource usage performance
+- Implement resource usage alerts
+- Plan for resource usage optimization
+
+## Continuous Improvement
+
+### 1. Performance Monitoring
+- Monitor performance continuously
+- Identify performance trends
+- Implement performance improvements
+- Plan for performance optimization
+
+### 2. Scalability Monitoring
+- Monitor scalability continuously
+- Identify scalability trends
+- Implement scalability improvements
+- Plan for scalability optimization
+
+### 3. Optimization Monitoring
+- Monitor optimization efforts
+- Identify optimization opportunities
+- Implement optimization improvements
+- Plan for optimization strategies
