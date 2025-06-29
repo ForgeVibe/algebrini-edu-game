@@ -26,27 +26,70 @@ app.use((req, res, next) => {
 let pool;
 let isConnected = false;
 
+// Configuration presets for different load levels
+const CONFIG_PRESETS = {
+  standard: {
+    max: 20,
+    min: 5,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
+    family: 4,
+  },
+  highLoad: {
+    max: 100,
+    min: 20,
+    idleTimeoutMillis: 60000,
+    connectionTimeoutMillis: 5000,
+    family: 4,
+    allowExitOnIdle: false,
+    maxUses: 7500,
+  }
+};
+
 async function initializeDatabase() {
   const maxRetries = 5;
   let retries = 0;
   
+  // Determine configuration based on environment
+  const loadLevel = process.env.LOAD_LEVEL || 'standard';
+  const config = CONFIG_PRESETS[loadLevel] || CONFIG_PRESETS.standard;
+  
+  console.log('Database connection configuration:');
+  console.log('LOAD_LEVEL:', loadLevel);
+  console.log('DB_HOST:', process.env.DB_HOST);
+  console.log('DB_PORT:', process.env.DB_PORT);
+  console.log('DB_NAME:', process.env.DB_NAME);
+  console.log('DB_USER:', process.env.DB_USER);
+  console.log('DB_PASSWORD:', process.env.DB_PASSWORD ? '[HIDDEN]' : 'undefined');
+  console.log('Pool config:', { max: config.max, min: config.min });
+  
   while (retries < maxRetries) {
     try {
-      pool = new Pool({
+      const dbConfig = {
         host: process.env.DB_HOST || 'postgres',
         port: process.env.DB_PORT || 5432,
         database: process.env.DB_NAME || 'algebrini_dev',
         user: process.env.DB_USER || 'algebrini_user',
         password: process.env.DB_PASSWORD || 'algebrini_dev_password',
-        max: 20, // Maximum number of clients in the pool
-        idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-        connectionTimeoutMillis: 2000, // Return an error after 2 seconds if connection could not be established
+        ...config
+      };
+      
+      console.log('Attempting database connection with config:', {
+        host: dbConfig.host,
+        port: dbConfig.port,
+        database: dbConfig.database,
+        user: dbConfig.user,
+        password: '[HIDDEN]',
+        max: dbConfig.max,
+        min: dbConfig.min
       });
+      
+      pool = new Pool(dbConfig);
 
       // Test the connection
       await pool.query('SELECT NOW()');
       isConnected = true;
-      console.log('Database connected successfully');
+      console.log(`Database connected successfully (${loadLevel} configuration)`);
       break;
     } catch (err) {
       retries++;

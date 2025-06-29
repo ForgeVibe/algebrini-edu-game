@@ -897,3 +897,33 @@ tasks:
       - echo ""
       - echo "Service status:"
       - docker compose -f infra/database/prod/compose.yml ps
+
+  # ===== LOAD CONFIGURATION MANAGEMENT =====
+  load:standard:
+    desc: Switch to standard load configuration (default)
+    silent: true
+    cmds:
+      - echo "Switching to standard load configuration..."
+      - cd infra/database/dev
+      - docker compose down
+      - export LOAD_LEVEL=standard
+      - docker compose up -d
+      - echo "Standard load configuration activated"
+
+  load:high:
+    desc: Switch to high-load configuration (for heavy usage)
+    silent: true
+    cmds:
+      - echo "Switching to high-load configuration..."
+      - cd infra/database/dev
+      - docker compose down
+      - export LOAD_LEVEL=highLoad
+      - docker compose -f compose.yml -f compose.high-load.yml up -d
+      - echo "High-load configuration activated"
+
+  load:status:
+    desc: Show current load configuration status
+    silent: true
+    cmds:
+      - echo "Current Load Configuration Status:"
+      - docker ps | grep algebrini_api || echo "No API containers running"

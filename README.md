@@ -36,6 +36,10 @@ task dev:start-fg  # Development mode (foreground)
 task test          # Run tests
 task build:web     # Build for web
 task serve-web     # Serve production web app
+
+# Load Configuration (for different usage scenarios):
+task load:standard # Standard configuration (development)
+task load:high     # High-load configuration (heavy usage)
 ```
 
 ### **Option 2: Local Flutter Development**
@@ -229,6 +233,18 @@ The project uses [Task](https://taskfile.dev/) for all development, build, and C
 | api:stop            | Stop API server                                  |
 | api:status          | Check API status                                 |
 | api:test            | Test API endpoints                               |
+
+### **Load Configuration (`load:*`)**
+| Task                | Description                                      |
+|---------------------|--------------------------------------------------|
+| load:standard       | Switch to standard configuration (1 API instance) |
+| load:high           | Switch to high-load configuration (3 API instances + monitoring) |
+| load:status         | Check current load configuration status          |
+
+**Load Configuration Details:**
+- **Standard Mode**: 20 DB connections, 256MB Redis, single API instance
+- **High-Load Mode**: 100 DB connections, 512MB Redis, 3 API instances, load balancer, Prometheus + Grafana monitoring
+- See `infra/database/dev/LOAD_CONFIGURATIONS.md` for complete documentation
 
 ### **Dependencies (`deps:*`)**
 | Task                | Description                                      |

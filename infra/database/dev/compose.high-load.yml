@@ -1,0 +1,201 @@
+# High-load configuration for Algebrini development environment
+# Use this when you expect high concurrent usage
+# Run with: docker compose -f compose.yml -f compose.high-load.yml up -d
+
+version: '3.8'
+
+services:
+  # Optimized PostgreSQL for high load
+  postgres:
+    environment:
+      # Increase connection limits
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C --max-connections=200"
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_stat_statements
+      -c pg_stat_statements.track=all
+      -c max_connections=200
+      -c shared_buffers=512MB
+      -c effective_cache_size=2GB
+      -c maintenance_work_mem=128MB
+      -c checkpoint_completion_target=0.9
+      -c wal_buffers=32MB
+      -c default_statistics_target=200
+      -c random_page_cost=1.1
+      -c effective_io_concurrency=400
+      -c work_mem=8MB
+      -c min_wal_size=2GB
+      -c max_wal_size=8GB
+      -c autovacuum_max_workers=4
+      -c autovacuum_naptime=10s
+      -c log_min_duration_statement=1000
+      -c track_activity_query_size=2048
+
+  # Optimized Redis for high load
+  redis:
+    command: >
+      redis-server 
+      --appendonly yes 
+      --maxmemory 512mb 
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --tcp-keepalive 300
+      --timeout 0
+      --tcp-backlog 511
+      --databases 16
+      --maxclients 10000
+
+  # High-load API configuration
+  api:
+    environment:
+      # Use high-load configuration
+      LOAD_LEVEL: highLoad
+      # Enable performance monitoring
+      ENABLE_METRICS: true
+      LOG_LEVEL: warn
+      # Redis configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      # Performance tuning
+      NODE_ENV: production
+      UV_THREADPOOL_SIZE: 64
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '1.0'
+        reservations:
+          memory: 512M
+          cpus: '0.5'
+    # Add health check for better monitoring
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Additional API instances for load distribution
+  api-2:
+    build:
+      context: ../../../api
+      dockerfile: Dockerfile
+    container_name: algebrini_api_dev_2
+    environment:
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: algebrini_dev
+      DB_USER: algebrini_user
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-algebrini_dev_password}
+      LOAD_LEVEL: highLoad
+      ENABLE_METRICS: true
+      LOG_LEVEL: warn
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      NODE_ENV: production
+      UV_THREADPOOL_SIZE: 64
+    ports:
+      - "3001:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  api-3:
+    build:
+      context: ../../../api
+      dockerfile: Dockerfile
+    container_name: algebrini_api_dev_3
+    environment:
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: algebrini_dev
+      DB_USER: algebrini_user
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-algebrini_dev_password}
+      LOAD_LEVEL: highLoad
+      ENABLE_METRICS: true
+      LOG_LEVEL: warn
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      NODE_ENV: production
+      UV_THREADPOOL_SIZE: 64
+    ports:
+      - "3002:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Load balancer for multiple API instances
+  nginx:
+    image: nginx:alpine
+    container_name: algebrini_nginx_dev
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
+      - api-2
+      - api-3
+    restart: unless-stopped
+    profiles:
+      - high-load
+
+  # Monitoring stack for high-load scenarios
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: algebrini_prometheus_dev
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    profiles:
+      - high-load
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: algebrini_grafana_dev
+    ports:
+      - "3003:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    profiles:
+      - high-load
+
+volumes:
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local 

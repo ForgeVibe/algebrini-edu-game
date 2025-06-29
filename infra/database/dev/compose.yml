@@ -104,10 +104,21 @@ services:
       DB_NAME: algebrini_dev
       DB_USER: algebrini_user
       DB_PASSWORD: ${POSTGRES_PASSWORD:-algebrini_dev_password}
+      # Load configuration - change this to 'highLoad' when needed
+      LOAD_LEVEL: ${LOAD_LEVEL:-standard}
+      # Redis configuration for caching
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
+      # Performance monitoring
+      ENABLE_METRICS: ${ENABLE_METRICS:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
     ports:
       - "3000:3000"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped
     logging:
