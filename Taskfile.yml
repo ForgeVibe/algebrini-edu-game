@@ -223,9 +223,9 @@ tasks:
 
   test:integration:
     desc: Run integration tests
-    deps: [docker:build-test]
     cmds:
-      - docker run --rm {{.IMAGE_NAME}}:testing
+      - docker compose -f infra/database/dev/compose.yml --profile test up --abort-on-container-exit --exit-code-from integration-tests integration-tests
+      - docker compose -f infra/database/dev/compose.yml --profile test down
 
   test:coverage:
     desc: Generate test coverage report

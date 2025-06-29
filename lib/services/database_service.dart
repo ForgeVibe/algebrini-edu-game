@@ -5,12 +5,19 @@ import 'package:postgres/postgres.dart';
 import '../models/database_models.dart';
 
 class DatabaseService {
-  static const String _baseUrl = 'http://localhost:3000/api'; // API base URL
-  static const String _dbHost = 'localhost';
-  static const int _dbPort = 5432;
-  static const String _dbName = 'algebrini_dev';
-  static const String _dbUser = 'algebrini_user';
-  static const String _dbPassword = 'algebrini_dev_password';
+  // Get configuration from environment variables with fallbacks
+  static String get _baseUrl => 
+      Platform.environment['API_BASE_URL'] ?? 'http://localhost:3000/api';
+  static String get _dbHost => 
+      Platform.environment['DB_HOST'] ?? 'localhost';
+  static int get _dbPort => 
+      int.tryParse(Platform.environment['DB_PORT'] ?? '5432') ?? 5432;
+  static String get _dbName => 
+      Platform.environment['DB_NAME'] ?? 'algebrini_dev';
+  static String get _dbUser => 
+      Platform.environment['DB_USER'] ?? 'algebrini_user';
+  static String get _dbPassword => 
+      Platform.environment['DB_PASSWORD'] ?? 'algebrini_dev_password';
 
   late PostgreSQLConnection _connection;
   bool _isConnected = false;
@@ -33,7 +40,7 @@ class DatabaseService {
 
       await _connection.open();
       _isConnected = true;
-      print('Database connected successfully');
+      print('Database connected successfully to $_dbHost:$_dbPort');
     } catch (e) {
       print('Failed to connect to database: $e');
       _isConnected = false;

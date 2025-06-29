@@ -91,6 +91,64 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # API server
+  api:
+    build:
+      context: ../../../api
+      dockerfile: Dockerfile
+    container_name: algebrini_api_dev
+    environment:
+      PORT: 3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: algebrini_dev
+      DB_USER: algebrini_user
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-algebrini_dev_password}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Integration test service
+  integration-tests:
+    image: algebrini-flutter:testing
+    container_name: algebrini_integration_tests
+    environment:
+      # Database connection for tests
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: algebrini_dev
+      DB_USER: algebrini_user
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-algebrini_dev_password}
+      # API connection for tests
+      API_HOST: api
+      API_PORT: 3000
+      API_BASE_URL: http://api:3000/api
+      # Test configuration
+      FLUTTER_TEST: "true"
+      INTEGRATION_TEST: "true"
+    volumes:
+      - ../../../:/home/flutteruser/app
+      - /home/flutteruser/app/.dart_tool
+      - /home/flutteruser/app/build
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+    profiles:
+      - test
+    command: flutter test tests/integration/ --reporter=expanded
+
 volumes:
   postgres_data:
     driver: local
