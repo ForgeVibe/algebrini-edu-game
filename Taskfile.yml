@@ -12,6 +12,13 @@ vars:
   DOCKER_CONTEXT: '.'
   DOWNLOADS_DIR: './infra/downloads'
   CONTAINER_NAME: algebrini-dev
+  APP_PORT: 5052
+  PGADMIN_PORT: 8081
+  API_PORT: 3000
+  POSTGRES_PORT: 5432
+  REDIS_PORT: 6379
+  PROD_PORT: 5053
+  WEB_PORT: 80
 
 tasks:
   default:
@@ -21,6 +28,7 @@ tasks:
   # ===== ENVIRONMENT & SETUP =====
   env:status:
     desc: Check development environment status
+    silent: true
     cmds:
       - |
         echo '=== Algebrini Development Environment Status ==='
@@ -38,59 +46,137 @@ tasks:
         cd infra/database/dev && docker compose ps 2>/dev/null || echo "Database stack not running"
         echo ''
         echo '=== API Server ==='
-        curl -s http://localhost:3000/api/health >/dev/null && echo "✓ API server running" || echo "✗ API server not responding"
+        curl -s http://localhost:{{.API_PORT}}/api/health >/dev/null && echo "✓ API server running" || echo "✗ API server not responding"
         echo ''
         echo '=== Available Services ==='
-        echo "Development Server: http://localhost:5052"
-        echo "Production Server:  http://localhost:5053"
-        echo "API Server:         http://localhost:3000"
-        echo "Database:           localhost:5432"
-        echo "pgAdmin:            http://localhost:8081"
+        echo "Development Server: http://localhost:{{.APP_PORT}}"
+        echo "Production Server:  http://localhost:{{.PROD_PORT}}"
+        echo "API Server:         http://localhost:{{.API_PORT}}"
+        echo "Database:           localhost:{{.POSTGRES_PORT}}"
+        echo "pgAdmin:            http://localhost:{{.PGADMIN_PORT}}"
+
+  env:check:
+    desc: Comprehensive environment health check
+    silent: true
+    cmds:
+      - |
+        echo "=== Algebrini Environment Health Check ==="
+        echo ""
+        
+        # Check Docker containers
+        echo "📦 Docker Containers:"
+        if docker ps | grep -q "algebrini_postgres_dev"; then
+          echo "  ✅ PostgreSQL: Running"
+        else
+          echo "  ❌ PostgreSQL: Not running"
+        fi
+        
+        if docker ps | grep -q "algebrini_redis_dev"; then
+          echo "  ✅ Redis: Running"
+        else
+          echo "  ❌ Redis: Not running"
+        fi
+        
+        if docker ps | grep -q "algebrini_api_dev"; then
+          echo "  ✅ API Server: Running"
+        else
+          echo "  ❌ API Server: Not running"
+        fi
+        
+        if docker ps | grep -q "algebrini_pgadmin_dev"; then
+          echo "  ✅ pgAdmin: Running"
+        else
+          echo "  ❌ pgAdmin: Not running"
+        fi
+        
+        if docker ps | grep -q "{{.CONTAINER_NAME}}"; then
+          echo "  ✅ Flutter Dev Server: Running"
+        else
+          echo "  ❌ Flutter Dev Server: Not running"
+        fi
+        
+        echo ""
+        echo "🌐 Service Endpoints:"
+        
+        # Check service connectivity
+        if curl -s http://localhost:{{.API_PORT}}/api/health >/dev/null 2>&1; then
+          echo "  ✅ API Health: http://localhost:{{.API_PORT}}/api/health"
+        else
+          echo "  ❌ API Health: Not responding"
+        fi
+        
+        if docker exec algebrini_postgres_dev pg_isready -U algebrini_user >/dev/null 2>&1; then
+          echo "  ✅ PostgreSQL: localhost:{{.POSTGRES_PORT}}"
+        else
+          echo "  ❌ PostgreSQL: Not responding"
+        fi
+        
+        if docker exec algebrini_redis_dev redis-cli ping >/dev/null 2>&1; then
+          echo "  ✅ Redis: localhost:{{.REDIS_PORT}}"
+        else
+          echo "  ❌ Redis: Not responding"
+        fi
+        
+        echo ""
+        echo "🚀 Quick Start Commands:"
+        echo "  task dev:setup     - Complete environment setup"
+        echo "  task dev:start     - Start development server"
+        echo "  task db:start      - Start database stack only"
+        echo "  task redis:start   - Start Redis only"
+        echo "  task api:start     - Start API server only"
 
   # ===== DOCKER HELPERS =====
   docker:check-dev:
     desc: Check if development Docker image exists (build if not)
+    silent: true
     cmds:
       - docker image inspect {{.IMAGE_NAME}}:development >/dev/null 2>&1 || task docker:build-dev
 
   docker:build-dev:
     desc: Build development Docker image (if not exists)
     deps: [download-flutter]
+    silent: true
     cmds:
       - docker image inspect {{.IMAGE_NAME}}:development >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target development -t {{.IMAGE_NAME}}:development -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
   docker:build-test:
     desc: Build testing Docker image (if not exists)
     deps: [download-flutter]
+    silent: true
     cmds:
       - docker image inspect {{.IMAGE_NAME}}:testing >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target testing -t {{.IMAGE_NAME}}:testing -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
   docker:build-web:
     desc: Build web Docker image (if not exists)
     deps: [download-flutter]
+    silent: true
     cmds:
       - docker image inspect {{.IMAGE_NAME}}:web-build >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target web-build -t {{.IMAGE_NAME}}:web-build -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
   docker:build-android:
     desc: Build Android Docker image (if not exists)
     deps: [download-flutter]
+    silent: true
     cmds:
       - docker image inspect {{.IMAGE_NAME}}:android-build >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target android-build -t {{.IMAGE_NAME}}:android-build -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
   docker:build-ios:
     desc: Build iOS Docker image (if not exists)
     deps: [download-flutter]
+    silent: true
     cmds:
       - docker image inspect {{.IMAGE_NAME}}:ios-build >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target ios-build -t {{.IMAGE_NAME}}:ios-build -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
   docker:build-prod:
     desc: Build production Docker image (if not exists)
     deps: [download-flutter]
+    silent: true
     cmds:
       - docker image inspect {{.IMAGE_NAME}}:production >/dev/null 2>&1 || docker build --build-arg FLUTTER_TAR={{.FLUTTER_TAR}} --target production -t {{.IMAGE_NAME}}:production -f infra/docker/Dockerfile {{.DOCKER_CONTEXT}}
 
   download-flutter:
     desc: Download Flutter SDK if not present
+    silent: true
     cmds:
       - |
         if [ ! -f "{{.DOWNLOADS_DIR}}/{{.FLUTTER_TAR}}" ]; then
@@ -107,17 +193,19 @@ tasks:
   db:start:
     desc: Start development database stack
     dir: infra/database/dev
+    silent: true
     cmds:
       - cd infra/database/dev
       - docker compose up -d
       - "echo 'Database stack started'"
-      - "echo 'PostgreSQL: localhost:5432'"
-      - "echo 'Redis: localhost:6379'"
-      - "echo 'pgAdmin: http://localhost:8081'"
+      - "echo 'PostgreSQL: localhost:{{.POSTGRES_PORT}}'"
+      - "echo 'Redis: localhost:{{.REDIS_PORT}}'"
+      - "echo 'pgAdmin: http://localhost:{{.PGADMIN_PORT}}'"
 
   db:stop:
     desc: Stop development database stack
     dir: infra/database/dev
+    silent: true
     cmds:
       - cd infra/database/dev
       - docker compose down
@@ -126,6 +214,7 @@ tasks:
   db:status:
     desc: Check database stack status
     dir: infra/database/dev
+    silent: true
     cmds:
       - cd infra/database/dev
       - docker compose ps
@@ -136,6 +225,7 @@ tasks:
 
   db:restart:
     desc: Restart development database stack
+    silent: true
     cmds:
       - task: db:stop
       - task: db:start
@@ -143,6 +233,7 @@ tasks:
   db:logs:
     desc: Show database logs
     dir: infra/database/dev
+    silent: true
     cmds:
       - cd infra/database/dev
       - docker compose logs --tail=50
@@ -150,6 +241,7 @@ tasks:
   db:backup:
     desc: Create database backup
     dir: infra/database
+    silent: true
     cmds:
       - cd infra/database
       - ./scripts/backup.sh dev
@@ -157,23 +249,76 @@ tasks:
   db:restore:
     desc: Restore database from backup
     dir: infra/database
+    silent: true
     cmds:
       - cd infra/database
       - ./scripts/restore.sh dev
 
   db:monitor:
     desc: Monitor database performance
+    silent: true
     cmds:
       - cd infra/database/dev
       - docker compose exec postgres psql -U algebrini_user -d algebrini_dev -c "SELECT version();"
       - "echo ''"
       - docker compose exec postgres psql -U algebrini_user -d algebrini_dev -c "SELECT count(*) as total_tables FROM information_schema.tables WHERE table_schema = 'public';"
 
+  # ===== REDIS MANAGEMENT =====
+  redis:start:
+    desc: Start Redis cache server
+    silent: true
+    cmds:
+      - cd infra/database/dev
+      - docker compose up -d redis
+      - "echo 'Redis cache server started'"
+      - "echo 'Redis: localhost:{{.REDIS_PORT}}'"
+
+  redis:stop:
+    desc: Stop Redis cache server
+    silent: true
+    cmds:
+      - cd infra/database/dev
+      - docker compose stop redis
+      - "echo 'Redis cache server stopped'"
+
+  redis:status:
+    desc: Check Redis cache server status
+    silent: true
+    cmds:
+      - cd infra/database/dev
+      - docker compose ps redis
+      - "echo ''"
+      - "echo 'Redis connection test:'"
+      - docker compose exec -T redis redis-cli ping || "echo 'Redis not ready'"
+
+  redis:flush:
+    desc: Flush Redis cache
+    silent: true
+    cmds:
+      - cd infra/database/dev
+      - docker compose exec -T redis redis-cli FLUSHALL
+      - "echo 'Redis cache flushed'"
+
+  redis:monitor:
+    desc: Monitor Redis operations
+    silent: true
+    cmds:
+      - cd infra/database/dev
+      - docker compose exec -T redis redis-cli MONITOR
+
+  redis:info:
+    desc: Show Redis server information
+    silent: true
+    cmds:
+      - cd infra/database/dev
+      - docker compose exec -T redis redis-cli INFO
+
   # ===== API SERVER =====
   # Note: API tasks now use a PID file for reliable start/stop.
   api:install:
     desc: Install API server dependencies
     dir: api
+    silent: true
     cmds:
       - cd api
       - npm install
@@ -182,6 +327,7 @@ tasks:
   api:start:
     desc: Start API server
     dir: api
+    silent: true
     cmds:
       - cd api
       - nohup node server.js > api.log 2>&1 &
@@ -191,6 +337,7 @@ tasks:
   api:stop:
     desc: Stop API server
     dir: api
+    silent: true
     cmds:
       - pkill -f "node server.js" || "echo 'No API server running'"
       - "echo 'API server stopped'"
@@ -200,42 +347,54 @@ tasks:
     silent: true
     cmds:
       - "echo 'API Server Status:'"
-      - curl -s http://localhost:3000/api/health || "echo 'API server not responding'"
+      - curl -s http://localhost:{{.API_PORT}}/api/health || "echo 'API server not responding'"
       - "echo ''"
       - "echo 'API endpoints:'"
-      - "echo '  Health: http://localhost:3000/api/health'"
-      - "echo '  Games: http://localhost:3000/api/games'"
-      - "echo '  Chapters: http://localhost:3000/api/chapters'"
+      - "echo '  Health: http://localhost:{{.API_PORT}}/api/health'"
+      - "echo '  Games: http://localhost:{{.API_PORT}}/api/games'"
+      - "echo '  Chapters: http://localhost:{{.API_PORT}}/api/chapters'"
 
   api:test:
     desc: Test API endpoints
+    silent: true
     cmds:
       - "echo 'Testing API endpoints...'"
-      - curl -s http://localhost:3000/api/health || "echo 'API server not running'"
-      - curl -s http://localhost:3000/api/games | head -c 100 || "echo 'Games endpoint not responding'"
+      - curl -s http://localhost:{{.API_PORT}}/api/health || "echo 'API server not running'"
+      - curl -s http://localhost:{{.API_PORT}}/api/games | head -c 100 || "echo 'Games endpoint not responding'"
 
   # ===== TESTING =====
   test:unit:
     desc: Run unit tests
     deps: [docker:build-test]
+    silent: true
     cmds:
       - docker run --rm {{.IMAGE_NAME}}:testing
 
   test:integration:
-    desc: Run integration tests
+    desc: Run integration tests against development environment
+    silent: true
     cmds:
-      - docker compose -f infra/database/dev/compose.yml --profile test up --abort-on-container-exit --exit-code-from integration-tests integration-tests
+      - |
+        echo "🧪 Running integration tests against development environment... Make sure development environment is running with: dev:start"
+        docker run --rm --network host algebrini-flutter:testing flutter test tests/integration/ --reporter=expanded
+
+  test:integration:cleanup:
+    desc: Clean up integration test containers
+    silent: true
+    cmds:
       - docker compose -f infra/database/dev/compose.yml --profile test down
 
   test:coverage:
     desc: Generate test coverage report
     deps: [docker:build-test] # Ensure tests are run before generating coverage
+    silent: true
     cmds:
       - docker run --rm -v $(pwd)/coverage:/home/flutteruser/app/coverage {{.IMAGE_NAME}}:testing
       - "echo 'Coverage report generated at coverage/html/index.html'"
 
   test:database:
     desc: Test database integration
+    silent: true
     cmds:
       - "echo 'Testing database integration...'"
       - task: db:status
@@ -246,29 +405,34 @@ tasks:
   build:android:
     desc: Build Android APK
     deps: [docker:build-android]
+    silent: true
     cmds:
       - "echo 'APK built in Docker container'"
 
   build:ios:
     desc: Build iOS app (requires macOS)
     deps: [docker:build-ios]
+    silent: true
     cmds:
       - "echo 'iOS app built in Docker container'"
 
   build:web:
     desc: Build web app
     deps: [docker:build-web]
+    silent: true
     cmds:
       - "echo 'Web app built in Docker container'"
 
   build:all:
     desc: Build for all platforms
     deps: [build:android, build:web]
+    silent: true
 
   # ===== COMPREHENSIVE TESTING =====
   test:smoke:
     desc: Run smoke tests (basic functionality)
     deps: [docker:build-test]
+    silent: true
     cmds:
       - |
         echo "Running smoke tests..."
@@ -277,6 +441,7 @@ tasks:
   test:regression:
     desc: Run regression tests
     deps: [docker:build-test]
+    silent: true
     cmds:
       - |
         echo "Running regression tests..."
@@ -285,6 +450,7 @@ tasks:
   test:performance:
     desc: Run performance tests
     deps: [docker:build-test]
+    silent: true
     cmds:
       - |
         echo "Running performance tests..."
@@ -293,6 +459,7 @@ tasks:
   test:accessibility:
     desc: Run accessibility tests
     deps: [docker:build-test]
+    silent: true
     cmds:
       - |
         echo "Running accessibility tests..."
@@ -301,6 +468,7 @@ tasks:
   test:responsive:
     desc: Run responsive design tests
     deps: [docker:build-test]
+    silent: true
     cmds:
       - |
         echo "Running responsive design tests..."
@@ -309,6 +477,7 @@ tasks:
   test:mobile:
     desc: Run mobile-specific tests
     deps: [docker:build-test]
+    silent: true
     cmds:
       - |
         echo "Running mobile-specific tests..."
@@ -317,6 +486,7 @@ tasks:
   test:web:
     desc: Run web-specific tests
     deps: [docker:build-test]
+    silent: true
     cmds:
       - |
         echo "Running web-specific tests..."
@@ -325,6 +495,7 @@ tasks:
   test:nightly:
     desc: Run nightly test suite (comprehensive)
     deps: [docker:build-test]
+    silent: true
     cmds:
       - |
         echo "Running nightly test suite..."
@@ -336,6 +507,7 @@ tasks:
   test:weekly:
     desc: Run weekly test suite (extended)
     deps: [docker:build-test]
+    silent: true
     cmds:
       - |
         echo "Running weekly test suite..."
@@ -346,6 +518,7 @@ tasks:
   test:monthly:
     desc: Run monthly test suite (full regression)
     deps: [docker:build-test]
+    silent: true
     cmds:
       - |
         echo "Running monthly test suite..."
@@ -357,51 +530,72 @@ tasks:
   code:format:
     desc: Format Dart code
     deps: [docker:check-dev]
+    silent: true
     cmds:
       - docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development dart format lib/ test/ integration_test/
 
   code:analyze:
     desc: Analyze Dart code
     deps: [docker:check-dev]
+    silent: true
     cmds:
       - docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development flutter analyze
 
   code:lint:
     desc: Run linting
     deps: [docker:check-dev]
+    silent: true
     cmds:
       - docker run --rm -v $(pwd):/home/flutteruser/app {{.IMAGE_NAME}}:development flutter analyze --fatal-infos
 
   code:fix:
     desc: Format and analyze code
     deps: [code:format, code:analyze]
+    silent: true
 
   # ===== DEVELOPMENT ENVIRONMENT =====
   dev:setup:
-    desc: Complete development environment setup
+    desc: Initial development environment setup
     cmds:
-      - task: db:start
-      - task: api:install
-      - task: api:start
-      - echo "Development environment setup complete"
+      - task db:setup
+      - task api:setup
+      - echo "✅ Development environment setup complete"
 
   dev:start:
-    desc: Start development server (background)
-    deps: [docker:check-dev]
+    desc: Start development environment (background)
+    deps: [dev:ensure-db-stack]
     cmds:
       - |
-        echo "Starting Algebrini development server..."
-        docker run -d --name {{.CONTAINER_NAME}} -p 5052:5000 -p 5053:8080 {{.IMAGE_NAME}}:development
-        echo "Development server started in background"
-        echo "Access at: http://localhost:5052"
+        echo "🚀 Starting Algebrini development environment..."
+        docker run -d --name algebrini_app_dev -p {{.APP_PORT}}:5000 --network algebrini_dev_network algebrini-flutter:development
+        echo "✅ Development environment started"
+        echo "🌐 App available at: http://localhost:{{.APP_PORT}}"
+        echo "📊 pgAdmin available at: http://localhost:{{.PGADMIN_PORT}}"
+        echo "🔧 API available at: http://localhost:{{.API_PORT}}"
 
   dev:start-fg:
-    desc: Start development server (foreground with hot reload)
-    deps: [docker:check-dev]
+    desc: Start development environment (foreground)
+    deps: [dev:ensure-db-stack]
     cmds:
       - |
-        echo "Starting Algebrini development server (foreground)..."
-        docker run --rm -p 5052:5000 -p 5053:8080 {{.IMAGE_NAME}}:development
+        echo "🚀 Starting Algebrini development environment (foreground)..."
+        echo "🌐 App will be available at: http://localhost:{{.APP_PORT}}"
+        echo "📊 pgAdmin available at: http://localhost:{{.PGADMIN_PORT}}"
+        echo "🔧 API available at: http://localhost:{{.API_PORT}}"
+        echo "Press Ctrl+C to stop"
+        docker run --rm --name algebrini_app_dev -p {{.APP_PORT}}:5000 --network algebrini_dev_network algebrini-flutter:development
+
+  dev:ensure-db-stack:
+    desc: Ensure database stack is running (internal task)
+    internal: true
+    cmds:
+      - |
+        if ! docker ps | grep -q "algebrini_postgres_dev"; then
+          echo "📦 Starting database stack..."
+          task db:start
+        else
+          echo "✅ Database stack already running"
+        fi
 
   dev:stop:
     desc: Stop development server
@@ -453,10 +647,11 @@ tasks:
   serve-web:
     desc: Serve production web app with nginx
     deps: [docker:build-prod]
+    silent: true
     cmds:
       - |
         echo "Starting production web server..."
-        docker run --rm -p 80:80 {{.IMAGE_NAME}}:production
+        docker run --rm -p {{.WEB_PORT}}:80 {{.IMAGE_NAME}}:production
 
   stop-all:
     desc: Stop all Algebrini containers
@@ -501,6 +696,7 @@ tasks:
 
   status:
     desc: Show development environment status
+    silent: true
     cmds:
       - |
         echo "Algebrini Development Environment Status"
@@ -509,8 +705,8 @@ tasks:
         docker ps --filter "ancestor={{.IMAGE_NAME}}:development" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
         echo ""
         echo "Available ports:"
-        echo "  Development: http://localhost:5052"
-        echo "  Production:  http://localhost:5053"
+        echo "  Development: http://localhost:{{.APP_PORT}}"
+        echo "  Production:  http://localhost:{{.PROD_PORT}}"
         echo ""
         echo "Useful commands:"
         echo "  task dev:start     - Start development server (background)"
