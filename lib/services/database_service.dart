@@ -635,4 +635,48 @@ class DatabaseService {
       return false;
     }
   }
+
+  // ===== API FALLBACKS FOR SINGLE ITEM FETCHES =====
+
+  /// Fetch a single chapter by ID from the API
+  Future<Chapter?> _getChapterFromApi(String chapterId) async {
+    try {
+      final response = await http.get(Uri.parse('$_baseUrl/chapters/$chapterId'));
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return Chapter.fromJson(json);
+      }
+    } catch (e) {
+      print('API error fetching chapter by ID: $e');
+    }
+    return null;
+  }
+
+  /// Fetch a single realm by ID from the API
+  Future<Realm?> _getRealmFromApi(String realmId) async {
+    try {
+      final response = await http.get(Uri.parse('$_baseUrl/realms/$realmId'));
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return Realm.fromJson(json);
+      }
+    } catch (e) {
+      print('API error fetching realm by ID: $e');
+    }
+    return null;
+  }
+
+  /// Fetch a single achievement by ID from the API
+  Future<Achievement?> _getAchievementFromApi(String achievementId) async {
+    try {
+      final response = await http.get(Uri.parse('$_baseUrl/achievements/$achievementId'));
+      if (response.statusCode == 200) {
+        final json = jsonDecode(response.body);
+        return Achievement.fromJson(json);
+      }
+    } catch (e) {
+      print('API error fetching achievement by ID: $e');
+    }
+    return null;
+  }
 }

@@ -14,6 +14,7 @@ import 'services/font_size_provider.dart';
 import 'services/theme_provider.dart';
 import 'services/game_data_service.dart';
 import 'services/game_registry.dart';
+import 'games/game_loader.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
